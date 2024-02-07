@@ -14,20 +14,36 @@ def validate_hostname(hostname):
     if not isinstance(hostname, str):
         raise TypeError("Hostname must be a string")
     # Define the regex pattern for the hostname components
-    pattern = r"(?P<environment>[p|t|q])-(?P<location>[2|3])-(?P<segment>[e|a])-(?P<tier>[a|d|g|i|m|w])-(?P<virtualization>[v|p])-(?P<operating_system>[w|x|/r|~s|k])-(?P<application>[a-z0-9]{3,4})-(?P<server>[0-9]{2})(?:\.(?P<suffix>(intra|inter)\.(PRD|QAT|TRG)\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+))?\b"
-    # Match the input with the pattern
+    pattern = r"(?P<environment>[p|t|q])-(?P<location>[2|3])-(?P<segment>[e|a])-(?P<tier>[a|d|g|i|m|w])-(?P<virtualization>[v|p])-(?P<operating_system>[w|x|r|s|k])-(?P<application>[a-z0-9]{3,4})-(?P<server>[0-9]{2})(?:\.(?P<intra_inter>(intra|inter))(?P<suffix_env>(PRD|QAT))\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+)?\b"
+    # Match the input with the pattern, ignoring the case
     match = re.match(pattern, hostname, re.IGNORECASE)
     # Check if there is a match
     if match:
-        # Get the suffix group from the match object
-        suffix = match.group("suffix")
+        # Get the environment, segment, intra_inter, and suffix_env groups from the match object
+        environment = match.group("environment").lower()
+        segment = match.group("segment").lower()
+        intra_inter = match.group("intra_inter")
+        suffix_env = match.group("suffix_env")
+        # Check if the environment, segment, intra_inter, and suffix_env are consistent
+        if environment == "p" and suffix_env and suffix_env.lower() != "prd":
+            # Return False if the environment is production but the suffix environment is not PRD
+            return False
+        if environment in ["t", "q"] and suffix_env and suffix_env.lower() != "qat":
+            # Return False if the environment is training or quality but the suffix environment is not QAT
+            return False
+        if segment == "a" and intra_inter and intra_inter.lower() != "intra":
+            # Return False if the segment is intranet but the intra_inter is not intra
+            return False
+        if segment == "e" and intra_inter and intra_inter.lower() != "inter":
+            # Return False if the segment is internet but the intra_inter is not inter
+            return False
         # Check if the suffix is present
-        if suffix:
+        if intra_inter and suffix_env:
             # Split the suffix by dots and get the XXX, TLD, and YY components
-            suffix_parts = suffix.split(".")
-            suffix_xxx = suffix_parts[2]
-            suffix_tld = suffix_parts[3]
-            suffix_yy = suffix_parts[4]
+            suffix_parts = hostname.split(".")
+            suffix_xxx = suffix_parts[2].lower()
+            suffix_tld = suffix_parts[3].lower()
+            suffix_yy = suffix_parts[4].lower()
             # Check if the suffix components match the sensitive values
             if suffix_xxx == XXX and suffix_tld == TLD and suffix_yy == YY:
                 # Return True if they match
