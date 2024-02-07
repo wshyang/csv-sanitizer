@@ -33,9 +33,6 @@ The script performs the following tasks:
 
 ## Hostname Format and Validation
 
-Sure, here is the summary of the corrected technical specifications for the hostname format and validation, in a markdown code block:
-
-```markdown
 - A hostname is a string that uniquely identifies a server in a network.
 - A hostname consists of seven components, separated by hyphens, that indicate various attributes such as environment, location, segment, tier, virtualization, operating system, and application.
 - A hostname may also have an optional suffix, preceded by a dot, that indicates the intra/inter network, the suffix environment, and the sensitive values XXX, TLD, and YY.
