@@ -31,6 +31,69 @@ The script performs the following tasks:
 - It creates a dataframe to store the pattern counts, which are the replacement strings and their counts in the file specific dataframe. It writes the pattern dataframe to the third tab of the same Excel file, with the sheet name "Pattern Counts".
 - It creates a pivot table of the sanitized values and their counts in the input dataframe. It writes the pivot table to the fourth tab of the same Excel file, with the sheet name "Command Patterns".
 
+## Hostname Format and Validation
+
+A hostname is a string that uniquely identifies a server in a network. A hostname consists of seven components, separated by hyphens, that indicate various attributes such as environment, location, segment, tier, virtualization, and application. The format of a hostname is as follows:
+
+`environment-location-segment-tier-virtualization-application-server`
+
+Each component has a specific meaning and a set of valid characters, as described below:
+
+- Environment: This component indicates the environment type of the server. It can be one of the following values:
+    - Production (p): This indicates that the server is used for production purposes, such as hosting live applications or services.
+    - Training (t): This indicates that the server is used for training purposes, such as providing a sandbox environment for learning or testing.
+    - Quality (q): This indicates that the server is used for quality assurance purposes, such as performing verification or validation tests on applications or services.
+- Location: This component indicates the location code of the server. It can be either 2 or 3, depending on the region where the server is located. For example, 2 for Singapore, 3 for Tokyo, etc.
+- Segment: This component indicates the business segment of the server. It can be one of the following values:
+    - Internet (e): This indicates that the server is used for internet-facing applications or services, such as web portals or APIs.
+    - Intranet (a): This indicates that the server is used for internal applications or services, such as intranet sites or databases.
+- Tier: This component indicates the server tier of the server. It can be one of the following values:
+    - App server (a): This indicates that the server is used for application logic or processing, such as running scripts or programs.
+    - Database server (d): This indicates that the server is used for data storage or retrieval, such as hosting databases or files.
+    - Gateway server (g): This indicates that the server is used for network communication or routing, such as providing access to other servers or networks.
+    - Integration server (i): This indicates that the server is used for data integration or transformation, such as performing ETL (Extract, Transform, Load) operations or data cleansing.
+    - Management server (m): This indicates that the server is used for management or administration, such as providing monitoring or security functions.
+    - Web server (w): This indicates that the server is used for web presentation or delivery, such as hosting web pages or static content.
+- Virtualization: This component indicates the server type of the server. It can be one of the following values:
+    - Virtual server (v): This indicates that the server is a virtual machine or a container, running on a physical host or a cloud platform.
+    - Physical server (p): This indicates that the server is a physical machine or a bare metal server, running on dedicated hardware or a data center.
+- Operating System: This component indicates the operating system of the server. It can be one of the following values:
+    - Windows (w): This indicates that the server is running on a Windows operating system, such as Windows Server or Windows 10.
+    - Appliance with proprietary OS (x): This indicates that the server is running on a proprietary operating system, such as a network appliance or a security device.
+    - Redhat (r): This indicates that the server is running on a Redhat operating system, such as Redhat Enterprise Linux or Redhat OpenShift.
+    - SuSE (s): This indicates that the server is running on a SuSE operating system, such as SuSE Linux Enterprise or SuSE Cloud.
+    - KMS appliance with proprietary OS (k): This indicates that the server is running on a proprietary operating system, specifically for a Key Management System (KMS) appliance.
+- Application: This component indicates the application identifier of the server. It can be a unique 3 or 4 character identifier for the application type, such as tns for Tenable, kms for Key Management System, etc.
+- Server: This component indicates the server identifier of the server. It can be a two-digit number indicating the server identifier within its specific application or type, such as 01, 02, 03, etc.
+
+An example of a valid hostname is `p2eawvtns04`, which means:
+
+- Production environment
+- Location code 2 (Singapore)
+- Internet segment
+- Web Server tier
+- Virtual server
+- Tenable application
+- Server 04
+
+To validate a given hostname string, a function can be defined that uses a regular expression pattern to match each component of the hostname according to the specified requirements. The function returns True if the hostname matches the pattern, and False otherwise. The function also raises a TypeError if the input hostname is not a string. The function can be written in Python as follows:
+
+```python
+# Import the re module for regular expression matching
+import re
+
+# Define a function to validate the hostname format
+def validate_hostname(hostname):
+    # Check if the input is a string
+    if not isinstance(hostname, str):
+        raise TypeError("Hostname must be a string")
+    # Define the regex pattern for the hostname components
+    pattern = r"(?P<environment>[p|t|q])-(?P<location>[2|3])-(?P<segment>[e|a])-(?P<tier>[a|d|g|i|m|w])-(?P<virtualization>[v|p])-(?P<operating_system>[w|x|r|s|k])-(?P<application>[a-z0-9]{3,4})-(?P<server>[0-9]{2})"
+    # Match the input with the pattern
+    match = re.match(pattern, hostname, re.IGNORECASE)
+    # Return True if there is a match, False otherwise
+    return bool(match)
+
 ## Error Handling
 
 The script handles any errors or exceptions gracefully, and provides informative messages to the user. Some possible errors or exceptions are:
