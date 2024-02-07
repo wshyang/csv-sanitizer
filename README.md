@@ -93,6 +93,7 @@ def validate_hostname(hostname):
     match = re.match(pattern, hostname, re.IGNORECASE)
     # Return True if there is a match, False otherwise
     return bool(match)
+```
 
 ## Error Handling
 
