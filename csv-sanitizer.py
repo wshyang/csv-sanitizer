@@ -62,7 +62,7 @@ def validate_hostname(hostname):
 # Define a function to replace the command strings with sanitized strings and references
 def regex_replace(command):
     # Define the regex patterns and replacement strings
-    patterns = [r"'[A-Za-z0-9_-]{8}'", r"(/[^/\s]+)+|('[^']+')|(\"[^\"]+\")", r"(?<=echo )\d{5,12}", HOSTNAME_PATTERN]
+    patterns = [r"'[A-Za-z0-9_-]{8}'", r"(/(bin|boot|dev|etc|home|lib|lib64|media|mnt|opt|proc|root|run|sbin|srv|sys|tmp|usr|var)(/[^/\s]+)*)|('[^']+')|(\"[^\"]+\")", r"(?<=echo )\d{5,12}", HOSTNAME_PATTERN]
     replacements = ["ALPHANUM8", "PATH", "NUMERIC", "HOSTNAME"]
     # Initialize an empty list to store the references
     references = []
