@@ -2,13 +2,13 @@
 
 ## Overview
 
-This program is designed to simplify and analyze the command strings in a CSV file. It replaces the command strings with simplified strings and references, and stores the original values and their counts in a separate dataframe. It also generates a pivot table of the simplified commands and their counts. It writes the output to an Excel file with two tabs.
+This program is designed to simplify and analyze the command strings in a CSV file. It replaces the command strings with simplified strings and references, and stores the original values and their counts in a separate dataframe. It also generates a pivot table of the simplified commands and their counts. It writes the output to an Excel file with three tabs: Simplified, References to Originals, and Pattern Counts.
 
 ## Input and Output
 
-The input is a CSV file that contains the command strings in a column named "Command/Events". The output is an Excel file that contains two tabs: Original and Command Patterns. The Original tab contains the original values and their counts. The Command Patterns tab contains the pivot table of the simplified commands and their counts.
+The input is a CSV file that contains the command strings in a column named "Command/Events". The output is an Excel file that contains the input dataframe with the simplified values, the references to the original values, and the pivot table of the simplified commands and their counts in separate tabs. The Simplified tab contains the input dataframe with the simplified values. The References to Originals tab contains the original values and their counts. The Pattern Counts tab contains the pivot table of the simplified commands and their counts.
 
-## Simplification and Replacement
+## Simplification and Replacement Rules
 
 The program simplifies and replaces the command strings with simplified strings and references using the following rules:
 
@@ -16,12 +16,6 @@ The program simplifies and replaces the command strings with simplified strings 
 - Replace strings that resemble UNIX paths under the default directories, either not enclosed in quotes, or enclosed in matching single or double quotes, with the string "PATH". For example, `'/usr/bin/python'` and `"/home/user/file.txt"` are replaced with `PATH_4` and `PATH_5`, respectively. However, if a PATH is at the start of the command string, it should not be replaced or referenced. For example, `/usr/bin/python /home/user/file.txt` is not replaced or referenced, but `/usr/bin/python /home/user/file.txt` is replaced with `/usr/bin/python PATH_5` and referenced as `PATH_5`.
 - Replace numbers between 5 and 12 digits long that follow the word "echo" with the string "NUMERIC". For example, `echo 123456789` is replaced with `NUMERIC_0`.
 - Replace valid hostnames with the string "HOSTNAME". A valid hostname follows the regex pattern defined in the global variable `hostname_pattern`. For example, `p2eavwaabc01.intraPRD.abc.com.sg` is replaced with `HOSTNAME_5`.
-
-The program stores the original values and their counts in a file specific dataframe named `original`. It also generates the reference values for the original values by appending an underscore and the index of the original value in the `original` dataframe to the simplified strings. For example, the reference value for `123456789` is `NUMERIC_0`. The program updates the input dataframe with the simplified strings and the references in a new column named "Reference".
-
-## Pivot Table
-
-The program creates a pivot table of the simplified commands and their counts using the `pivot_table` function of pandas. The pivot table has the simplified command strings as the index and the counts as the values. The program writes the pivot table to the output Excel file in a separate tab.
 
 ## Program State
 
@@ -40,15 +34,11 @@ The program uses the following logic and algorithm to simplify and analyze the c
 
 - Import the modules os, sys, glob, pandas, and re.
 - Define a global variable `hostname_pattern` that contains the regex pattern for valid hostnames.
-- Define a function `simplify_and_replace` that takes a command string as an argument and returns a simplified string and a reference value using the following rules:
-  - Replace a single quote enclosed block of 8 characters consisting of both upper and lowercase alphanumeric characters, underscore and dash, with the string "ALPHANUM8". For example, `'aBcD_1-2'` is replaced with `ALPHANUM8_2`.
-  - Replace strings that resemble UNIX paths under the default directories, either not enclosed in quotes, or enclosed in matching single or double quotes, with the string "PATH". For example, `'/usr/bin/python'` and `"/home/user/file.txt"` are replaced with `PATH_4` and `PATH_5`, respectively. However, if a PATH is at the start of the command string, it should not be replaced or referenced. For example, `/usr/bin/python /home/user/file.txt` is not replaced or referenced, but `/usr/bin/python /home/user/file.txt` is replaced with `/usr/bin/python PATH_5` and referenced as `PATH_5`.
-  - Replace numbers between 5 and 12 digits long that follow the word "echo" with the string "NUMERIC". For example, `echo 123456789` is replaced with `NUMERIC_0`.
-  - Replace valid hostnames with the string "HOSTNAME". A valid hostname follows the regex pattern defined in the global variable `hostname_pattern`. For example, `p2eavwaabc01.intraPRD.abc.com.sg` is replaced with `HOSTNAME_5`.
-- Define a function `save_state` that takes the file name, the input dataframe, the original dataframe, and the counter as arguments and saves them to a state file named "program_state.pkl" using the pickle module.
+- Define a function `simplify_and_replace` that takes a command string as an argument and returns a simplified string and a reference value using the simplification and replacement rules.
+- Define a function `save_state` that takes the file name, the input dataframe, the original dataframe, and the counter as arguments and saves them to the state file using the pickle module.
 - Define a function `load_state` that takes the file name as an argument and loads the program state from the state file if it exists and the file name matches the current file. It returns the input dataframe, the original dataframe, and the counter. If the state file does not exist or the file name does not match, it returns None, None, and 0.
 - Define a function `delete_state` that deletes the state file if it exists.
-- Define a function `write_output` that takes the file name, the input dataframe, the original dataframe, and the pivot table as arguments and writes them to the output Excel file in separate tabs using the `to_excel` method of pandas with the `index=True` argument to preserve the index of the dataframes. The output Excel file will have three tabs: Input, Original, and Command Patterns. The Input tab contains the input dataframe with the simplified values and the references. The Original tab contains the original values and their counts. The Command Patterns tab contains the pivot table of the simplified commands and their counts.
+- Define a function `write_output` that takes the file name, the input dataframe, the original dataframe, and the pivot table as arguments and writes them to the output Excel file in separate tabs using the `to_excel` method of pandas with the `index=True` argument to preserve the index of the dataframes.
 - Define a function `process_file` that takes the file name as an argument and performs the following steps:
   - Read the CSV file and store it in a pandas dataframe named `input_df`.
   - Load the program state from the state file using the `load_state` function and assign the returned values to `input_df`, `original`, and `counter`.
@@ -62,7 +52,7 @@ The program uses the following logic and algorithm to simplify and analyze the c
   - Print a status message to the standard output showing the percentage of completion.
   - Save the current program state to the state file using the `save_state` function every time the `counter` reaches a multiple of 0.05% of the `total`.
   - After the loop is finished, create a pivot table of the simplified commands and their counts using the `pivot_table` function of pandas. The pivot table has the simplified command strings as the index and the counts as the values.
-  - Write the `original` dataframe and the pivot table to the output Excel file using the `write_output` function.
+  - Write the `input_df`, the `original` dataframe and the pivot table to the output Excel file using the `write_output` function.
   - Delete the state file using the `delete_state` function.
 - Loop through all the CSV files in the current directory using the glob module and the pattern "*.csv".
 - For each CSV file, call the `process_file` function with the file name as an argument.
