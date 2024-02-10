@@ -84,10 +84,13 @@ The program uses the following logic and algorithm to simplify and analyze the c
   - Assign the current time to a variable named `start_time`.
   - Loop through the rows of the `input_df` dataframe starting from the `counter` value and get the command string from the "Command/Events" column.
   - Simplify and replace the command string with the simplified string and the list of original strings using the `simplify_and_replace` function.
-- Generate the reference value and the updated original dataframe using the `generate_references` function with the list of original strings and the original dataframe as arguments.
-  - Update the `input_df` dataframe with the simplified string and the reference value in a new column named "Reference".
-  - Increment the `counter` by one.
-  - Save the current program state to the state file using the `save_state` function and print a status message to the standard output showing the percentage of completion as well as provide an estimated time to completion every time the `counter` reaches a multiple of 0.5% of the `total`.
+  - Every time the counter is a multiple of 0.5% of the total number of lines, do the following:
+    - Call the save_state function with the file name, the input dataframe, the original dataframe, and the counter as arguments. This will save the current progress of the program to a state file.
+    - Print a message to the standard output that shows how many lines have been processed and what percentage of the total that is.
+    - Calculate the average time per line and the remaining time based on the current time and the start time. Print a message to the standard output that shows the estimated time to finish the program.
+  - Generate the reference value and the updated original dataframe using the `generate_references` function with the list of original strings and the original dataframe as arguments.
+    - Update the `input_df` dataframe with the simplified string and the reference value in a new column named "Reference".
+    - Increment the `counter` by one.
   - After the loop is finished, create a pivot table of the simplified commands and their counts using the `pivot_table` function of pandas. The pivot table has the simplified command strings as the index and the counts as the values.
   - Write the `input_df`, the `original` dataframe and the pivot table to the output Excel file using the `write_output` function.
   - Delete the state file using the `delete_state` function.
