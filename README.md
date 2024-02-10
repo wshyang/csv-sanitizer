@@ -85,7 +85,7 @@ r"(?P<environment>[p|t|q])(?P<location>[2|3])(?P<segment>[e|a])(?P<tier>[a|d|g|i
 
 This regex matches any string that follows the hostname format of:
 
-environment-location-segment-tier-virtualization-operating_system-application-server.suffix
+[environment][location][segment][tier][virtualization][operating_system][application][server].suffix
 
 where:
 
