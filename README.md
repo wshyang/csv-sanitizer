@@ -86,8 +86,7 @@ The program uses the following logic and algorithm to simplify and analyze the c
 - Generate the reference value and the updated original dataframe using the `generate_references` function with the list of original strings and the original dataframe as arguments.
   - Update the `input_df` dataframe with the simplified string and the reference value in a new column named "Reference".
   - Increment the `counter` by one.
-  - Print a status message to the standard output showing the percentage of completion.
-  - Save the current program state to the state file using the `save_state` function every time the `counter` reaches a multiple of 0.05% of the `total`.
+  - Save the current program state to the state file using the `save_state` function and print a status message to the standard output showing the percentage of completion as well as provide an estimated time to completion every time the `counter` reaches a multiple of 0.5% of the `total`.
   - After the loop is finished, create a pivot table of the simplified commands and their counts using the `pivot_table` function of pandas. The pivot table has the simplified command strings as the index and the counts as the values.
   - Write the `input_df`, the `original` dataframe and the pivot table to the output Excel file using the `write_output` function.
   - Delete the state file using the `delete_state` function.
