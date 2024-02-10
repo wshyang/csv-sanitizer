@@ -67,7 +67,7 @@ The program saves the program state to the state file every time it reaches a th
 
 The program uses the following logic and algorithm to simplify and analyze the command strings in the CSV files:
 
-- Import the modules os, sys, glob, pandas, numpy and re.
+- Import the modules os, sys, glob, pandas, numpy, re, time and pickle.
 - Define a global variable `hostname_pattern` that contains the regex pattern for valid hostnames.
 - Define a function `simplify_and_replace` that takes a command string as an argument and returns a simplified string and a list of original strings that were replaced using the simplification and replacement rules. 
 - In simplify_and_replace, the regex strings and replacement strings should be in arrays to help reduce repetition in the code.
@@ -81,6 +81,7 @@ The program uses the following logic and algorithm to simplify and analyze the c
   - Load the program state from the state file using the `load_state` function and assign the returned values to `input_df`, `original`, and `counter`.
   - If `input_df` and `original` are None, create an empty dataframe named `original` with two columns: "Value" and "Count", then read in the CSV file and store it in a pandas dataframe named `input_df`.
   - Get the total number of rows in the `input_df` dataframe and assign it to a variable named `total`.
+  - Assign the current time to a variable named `start_time`.
   - Loop through the rows of the `input_df` dataframe starting from the `counter` value and get the command string from the "Command/Events" column.
   - Simplify and replace the command string with the simplified string and the list of original strings using the `simplify_and_replace` function.
 - Generate the reference value and the updated original dataframe using the `generate_references` function with the list of original strings and the original dataframe as arguments.
