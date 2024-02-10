@@ -1,3 +1,39 @@
+# Functional Specification
+
+## Overview
+
+This program is designed to simplify and analyze the command strings in a CSV file. It replaces the command strings with simplified strings and references, and stores the original values and their counts in a separate dataframe. It also generates a pivot table of the simplified commands and their counts. It writes the output to an Excel file with two tabs.
+
+## Input and Output
+
+The input is a CSV file that contains the command strings in a column named "Command/Events". The output is an Excel file that contains two tabs: Original and Command Patterns. The Original tab contains the original values and their counts. The Command Patterns tab contains the pivot table of the simplified commands and their counts.
+
+## Simplification and Replacement
+
+The program simplifies and replaces the command strings with simplified strings and references using the following rules:
+
+- Replace a single quote enclosed block of 8 characters consisting of both upper and lowercase alphanumeric characters, underscore and dash, with the string "ALPHANUM8". For example, `'aBcD_1-2'` is replaced with `ALPHANUM8_2`.
+- Replace strings that resemble UNIX paths under the default directories, either not enclosed in quotes, or enclosed in matching single or double quotes, with the string "PATH". For example, `'/usr/bin/python'` and `"/home/user/file.txt"` are replaced with `PATH_4` and `PATH_5`, respectively. However, if a PATH is at the start of the command string, it should not be replaced or referenced. For example, `/usr/bin/python /home/user/file.txt` is not replaced or referenced, but `/usr/bin/python /home/user/file.txt` is replaced with `/usr/bin/python PATH_5` and referenced as `PATH_5`.
+- Replace numbers between 5 and 12 digits long that follow the word "echo" with the string "NUMERIC". For example, `echo 123456789` is replaced with `NUMERIC_0`.
+- Replace valid hostnames with the string "HOSTNAME". A valid hostname follows the regex pattern defined in the global variable `hostname_pattern`. For example, `p2eavwaabc-01.intraPRD.abc.com.sg` is replaced with `HOSTNAME_5`.
+
+The program stores the original values and their counts in a file specific dataframe named `original`. It also generates the reference values for the original values by appending an underscore and the index of the original value in the `original` dataframe to the simplified strings. For example, the reference value for `123456789` is `NUMERIC_0`. The program updates the input dataframe with the simplified strings and the references in a new column named "Reference".
+
+## Pivot Table
+
+The program creates a pivot table of the simplified commands and their counts using the `pivot_table` function of pandas. The pivot table has the simplified command strings as the index and the counts as the values. The program writes the pivot table to the output Excel file in a separate tab.
+
+## Program State
+
+The program saves and loads the program state to and from a state file named "program_state.pkl". The program state is a dictionary that contains the following keys and values:
+
+- "file_name": the name of the input CSV file
+- "input_df": the input dataframe
+- "original": the original dataframe
+- "counter": the counter variable that tracks the progress of the program
+
+The program saves the program state to the state file every time it reaches a threshold of 0.5% of the total lines to be processed. The program loads the program state from the state file if it exists and the file name matches the current file. The program resumes from the previous state at the line indicated by the counter value. The program deletes the state file after the output file is written and saved.
+
 ## Logic and Algorithm
 
 The program uses the following logic and algorithm to perform the tasks:
