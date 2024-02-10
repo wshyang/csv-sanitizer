@@ -18,6 +18,29 @@ The program simplifies and replaces the command strings with simplified strings 
 - Replace numbers between 5 and 12 digits long that follow the word "echo" with the string "NUMERIC". For example, `echo 123456789` is replaced with `NUMERIC_0`.
 - Replace valid hostnames with the string "HOSTNAME". A valid hostname follows the regex pattern defined in the global variable `hostname_pattern`. For example, `p2eavwaabc01.intraPRD.abc.com.sg` is replaced with `HOSTNAME_5`.
 
+### Example Scenarios for PATH
+
+The following are some examples of test cases and scenarios that demonstrate how the program should simplify and replace the command strings in the input CSV file.
+
+- Test case 1: The input CSV file contains a command string that starts with a path and has another path in the middle. The program should not replace or reference the first path, but should replace and reference the second path. For example:
+
+| Command/Events | Reference |
+| -------------- | --------- |
+| /usr/bin/python /home/user/file.txt | PATH_1 |
+
+The references dataframe should contain:
+
+| Index | Value | Count |
+| ----- | ----- | ----- |
+| 1 | /home/user/file.txt | 1 |
+
+The pivot table should contain:
+
+| Command/Events | Reference |
+| -------------- | --------- |
+| /usr/bin/python PATH | 1 |
+
+
 ## Program State
 
 The program saves and loads the program state to and from a state file named "program_state.pkl". The program state is a dictionary that contains the following keys and values:
