@@ -67,7 +67,7 @@ The program saves the program state to the state file every time it reaches a th
 
 The program uses the following logic and algorithm to simplify and analyze the command strings in the CSV files:
 
-- Import the modules os, sys, glob, pandas, and re.
+- Import the modules os, sys, glob, pandas, numpy and re.
 - Define a global variable `hostname_pattern` that contains the regex pattern for valid hostnames.
 - Define a function `simplify_and_replace` that takes a command string as an argument and returns a simplified string and a list of original strings that were replaced using the simplification and replacement rules. 
 - In simplify_and_replace, the regex strings and replacement strings should be in arrays to help reduce repetition in the code.
@@ -76,6 +76,7 @@ The program uses the following logic and algorithm to simplify and analyze the c
 - Define a function `load_state` that takes the file name as an argument and loads the program state from the state file if it exists and the file name matches the current file. It returns the input dataframe, the original dataframe, and the counter. If the state file does not exist or the file name does not match, it returns None, None, and 0.
 - Define a function `delete_state` that deletes the state file if it exists.
 - Define a function `write_output` that takes the file name, the input dataframe, the original dataframe, and the pivot table as arguments and writes them to the output Excel file in separate tabs using the `to_excel` method of pandas with the `index=True` argument to preserve the index of the dataframes.
+- The program will also check if the input dataframe exceeds the maximum number of rows per sheet allowed by Excel, which is 1048576. If the input dataframe is too large, the program will split it into smaller chunks and write them to different sheets in the output Excel file. The sheet names will be based on the original sheet name, with a suffix consisting of an underscore, and then the record number of the next record. For example, if the input dataframe has 2000000 rows, the program will write the first 1048575 rows to a sheet named “Simplified”, and the remaining 951425 rows to a sheet named “Simplified_1048576”. This needs to take into account the row taken up by the header row at the top of each sheet.
 - Define a function `process_file` that takes the file name as an argument and performs the following steps:
   - Load the program state from the state file using the `load_state` function and assign the returned values to `input_df`, `original`, and `counter`.
   - If `input_df` and `original` are None, create an empty dataframe named `original` with two columns: "Value" and "Count", then read in the CSV file and store it in a pandas dataframe named `input_df`.
