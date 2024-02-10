@@ -19,6 +19,7 @@ This is a Python script that reads a CSV file that contains a column of command 
 The script performs the following tasks:
 
 - It defines a file specific dataframe to store the original strings and their counts, with the columns "original" and "count".
+- It defines a global variable for the hostname regex pattern, which is used to validate and replace the hostnames in the command strings.
 - It defines a function `regex_replace` that takes a string as an input and returns a tuple of two elements: the sanitized string and the references list. The function applies a series of regex replacements on each command string to sanitize them. The regex replacements are as follows:
     - Replace a single quote enclosed block of 8 characters consisting of both upper and lowercase alphanumeric characters, underscore and dash, with the string "ALPHANUM8".
     - Replace strings that resemble UNIX paths under the default directories, either not enclosed in quotes, or enclosed in matching single or double quotes, with the string "PATH".
@@ -72,67 +73,7 @@ The script performs the following tasks:
         - intraPRD.XXX.TLD.YY: This indicates that the server is in the intranet network, the suffix environment is production, and the sensitive values are XXX, TLD, and YY. For example, intraPRD.abc.com.sg.
         - interQAT.XXX.TLD.YY: This indicates that the server is in the internet network, the suffix environment is quality or training, and the sensitive values are XXX, TLD, and YY. For example, interQAT.abc.com.sg.
 
-- To validate a given hostname string, a function can be defined that uses a regular expression pattern to match each component of the hostname according to the specified requirements. The function returns True if the hostname matches the pattern and is consistent with the environment, segment, and suffix, and False otherwise. The function also raises a TypeError if the input hostname is not a string. The function can be written in Python as follows:
-
-```python
-# Import the re module for regular expression matching
-import re
-
-# Define the sensitive values for XXX, TLD, and YY
-XXX = "abc"
-TLD = "com"
-YY = "sg"
-
-# Define a function to validate the hostname format
-def validate_hostname(hostname):
-    # Check if the input is a string
-    if not isinstance(hostname, str):
-        raise TypeError("Hostname must be a string")
-    # Define the regex pattern for the hostname components
-    pattern = r"(?P<environment>[p|t|q])-(?P<location>[2|3])-(?P<segment>[e|a])-(?P<tier>[a|d|g|i|m|w])-(?P<virtualization>[v|p])-(?P<operating_system>[w|x|r|s|k])-(?P<application>[a-z0-9]{3,4})-(?P<server>[0-9]{2})(?:\.(?P<intra_inter>(intra|inter))(?P<suffix_env>(PRD|QAT))\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+)?\b"
-    # Match the input with the pattern, ignoring the case
-    match = re.match(pattern, hostname, re.IGNORECASE)
-    # Check if there is a match
-    if match:
-        # Get the environment, segment, intra_inter, and suffix_env groups from the match object
-        environment = match.group("environment").lower()
-        segment = match.group("segment").lower()
-        intra_inter = match.group("intra_inter")
-        suffix_env = match.group("suffix_env")
-        # Check if the environment, segment, intra_inter, and suffix_env are consistent
-        if environment == "p" and suffix_env and suffix_env.lower() != "prd":
-            # Return False if the environment is production but the suffix environment is not PRD
-            return False
-        if environment in ["t", "q"] and suffix_env and suffix_env.lower() != "qat":
-            # Return False if the environment is training or quality but the suffix environment is not QAT
-            return False
-        if segment == "a" and intra_inter and intra_inter.lower() != "intra":
-            # Return False if the segment is intranet but the intra_inter is not intra
-            return False
-        if segment == "e" and intra_inter and intra_inter.lower() != "inter":
-            # Return False if the segment is internet but the intra_inter is not inter
-            return False
-        # Check if the suffix is present
-        if intra_inter and suffix_env:
-            # Split the suffix by dots and get the XXX, TLD, and YY components
-            suffix_parts = hostname.split(".")
-            suffix_xxx = suffix_parts[2].lower()
-            suffix_tld = suffix_parts[3].lower()
-            suffix_yy = suffix_parts[4].lower()
-            # Check if the suffix components match the sensitive values
-            if suffix_xxx == XXX and suffix_tld == TLD and suffix_yy == YY:
-                # Return True if they match
-                return True
-            else:
-                # Return False if they do not match
-                return False
-        else:
-            # Return True if the suffix is not present
-            return True
-    else:
-        # Return False if there is no match
-        return False
-```
+- To validate a given hostname string, a function can be defined that uses the global hostname regex pattern to match each component of the hostname according to the specified requirements. The function returns True if the hostname matches the pattern and is consistent with the environment, segment, and suffix, and False otherwise. The function also raises a TypeError if the input hostname is not a string.
 
 ## Error Handling
 
