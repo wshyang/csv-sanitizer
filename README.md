@@ -69,20 +69,21 @@ The program uses the following logic and algorithm to simplify and analyze the c
 
 - Import the modules os, sys, glob, pandas, and re.
 - Define a global variable `hostname_pattern` that contains the regex pattern for valid hostnames.
-- Define a function `simplify_and_replace` that takes a command string as an argument and returns a simplified string and a reference value using the simplification and replacement rules. 
+- Define a function `simplify_and_replace` that takes a command string as an argument and returns a simplified string and a list of original strings that were replaced using the simplification and replacement rules. 
 - In simplify_and_replace, the regex strings and replacement strings should be in arrays to help reduce repetition in the code.
-- Define a function `save_state` that takes the file name, the input dataframe, the references dataframe, and the counter as arguments and saves them to the state file using the pickle module.
-- Define a function `load_state` that takes the file name as an argument and loads the program state from the state file if it exists and the file name matches the current file. It returns the input dataframe, the references dataframe, and the counter. If the state file does not exist or the file name does not match, it returns None, None, and 0.
+- Define a function `generate_references` that takes a list of original strings and the original dataframe as arguments and returns a reference value and an updated original dataframe using the reference generation rules.
+- Define a function `save_state` that takes the file name, the input dataframe, the original dataframe, and the counter as arguments and saves them to the state file using the pickle module.
+- Define a function `load_state` that takes the file name as an argument and loads the program state from the state file if it exists and the file name matches the current file. It returns the input dataframe, the original dataframe, and the counter. If the state file does not exist or the file name does not match, it returns None, None, and 0.
 - Define a function `delete_state` that deletes the state file if it exists.
-- Define a function `write_output` that takes the file name, the input dataframe, the references dataframe, and the pivot table as arguments and writes them to the output Excel file in separate tabs using the `to_excel` method of pandas with the `index=True` argument to preserve the index of the dataframes.
+- Define a function `write_output` that takes the file name, the input dataframe, the original dataframe, and the pivot table as arguments and writes them to the output Excel file in separate tabs using the `to_excel` method of pandas with the `index=True` argument to preserve the index of the dataframes.
 - Define a function `process_file` that takes the file name as an argument and performs the following steps:
   - Read the CSV file and store it in a pandas dataframe named `input_df`.
   - Load the program state from the state file using the `load_state` function and assign the returned values to `input_df`, `original`, and `counter`.
   - If `input_df` and `original` are None, create an empty dataframe named `original` with two columns: "Value" and "Count".
   - Get the total number of rows in the `input_df` dataframe and assign it to a variable named `total`.
   - Loop through the rows of the `input_df` dataframe starting from the `counter` value and get the command string from the "Command/Events" column.
-  - Simplify and replace the command string with the simplified string and the reference value using the `simplify_and_replace` function.
-  - Store the original value and its count in the `original` dataframe. If the original value already exists in the dataframe, increment its count by one. Otherwise, append a new row with the original value and a count of one.
+  - Simplify and replace the command string with the simplified string and the list of original strings using the `simplify_and_replace` function.
+- Generate the reference value and the updated original dataframe using the `generate_references` function with the list of original strings and the original dataframe as arguments.
   - Update the `input_df` dataframe with the simplified string and the reference value in a new column named "Reference".
   - Increment the `counter` by one.
   - Print a status message to the standard output showing the percentage of completion.
