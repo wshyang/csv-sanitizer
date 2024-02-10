@@ -36,49 +36,36 @@ The program saves the program state to the state file every time it reaches a th
 
 ## Logic and Algorithm
 
-The program uses the following logic and algorithm to perform the tasks:
+The program uses the following logic and algorithm to simplify and analyze the command strings in the CSV files:
 
-- Import the required modules: os, re, time, pickle, and pandas
-- Define the sensitive values for XXX, TLD, and YY
-- Define the global variable for the hostname regex pattern
-- Define a function to validate the hostname format
-- Define a function to replace the command strings with simplified strings and references
-- Get the current working directory
-- Get the list of files in the directory
-- Loop through the files
-    - Check if the file is a CSV file and does not have a corresponding output file
-        - Print a message indicating the file is being processed
-        - Check if the program state file exists
-            - If it exists, load the program state from the file and get the file name, the input dataframe, the original dataframe, the pattern dataframe, the pivot table, and the counter variable from the state
-                - Check if the file name matches the current file
-                    - If it matches, print a message indicating the program is resuming from the previous state
-                    - If it does not match, print a message indicating the program is starting from the beginning and read the CSV file as a pandas dataframe, create a file specific dataframe to store the original values and their counts, create a new column in the input dataframe to store the references, create a dataframe to store the pattern counts, create a pivot table of the simplified values and their counts, and initialize the counter variable to zero
-            - If it does not exist, read the CSV file as a pandas dataframe, create a file specific dataframe to store the original values and their counts, create a new column in the input dataframe to store the references, create a dataframe to store the pattern counts, create a pivot table of the simplified values and their counts, and initialize the counter variable to zero
-        - Get the number of lines to be processed from the input dataframe
-        - Calculate the threshold for printing the status update as 0.5% of the total lines
-        - Get the current time as the start time
-        - Loop through the rows of the input dataframe from the counter value
-            - Get the command string from the row
-            - Replace the command string with the simplified string and the references
-            - Update the row with the simplified string and the references
-            - Increment the counter by one
-            - Check if the counter reaches the threshold
-                - If it does, calculate the percentage of completion, the elapsed time, and the remaining time
-                - Print the status update with the percentage, the elapsed time, and the estimated time of completion
-                - Create a program state with the file name, the input dataframe, the original dataframe, the pattern dataframe, the pivot table, and the counter variable
-                - Save the program state to the state file
-            - Search through the references
-                - For each reference, check if the value already exists in the original dataframe
-                    - If it does, increment the count of the value by one
-                    - If it does not, add the value and its count to the original dataframe
-        - Search through the unique values in the original dataframe
-            - Get the pattern of the value by removing the suffix
-            - Check if the pattern already exists in the pattern dataframe
-                - If it does, increment the count of the pattern by the count of the value
-                - If it does not, add the pattern and its count to the pattern dataframe
-        - Write the input dataframe, the original dataframe, the pattern dataframe, and the pivot table to an Excel file with four tabs
-        - Delete the program state file
-        - Print a message indicating the file is processed and saved
+- Import the modules os, sys, glob, pandas, and re.
+- Define a global variable `hostname_pattern` that contains the regex pattern for valid hostnames.
+- Define a function `simplify_and_replace` that takes a command string as an argument and returns a simplified string and a reference value using the following rules:
+  - Replace a single quote enclosed block of 8 characters consisting of both upper and lowercase alphanumeric characters, underscore and dash, with the string "ALPHANUM8". For example, `'aBcD_1-2'` is replaced with `ALPHANUM8_2`.
+  - Replace strings that resemble UNIX paths under the default directories, either not enclosed in quotes, or enclosed in matching single or double quotes, with the string "PATH". For example, `'/usr/bin/python'` and `"/home/user/file.txt"` are replaced with `PATH_4` and `PATH_5`, respectively. However, if a PATH is at the start of the command string, it should not be replaced or referenced. For example, `/usr/bin/python /home/user/file.txt` is not replaced or referenced, but `/usr/bin/python /home/user/file.txt` is replaced with `/usr/bin/python PATH_5` and referenced as `PATH_5`.
+  - Replace numbers between 5 and 12 digits long that follow the word "echo" with the string "NUMERIC". For example, `echo 123456789` is replaced with `NUMERIC_0`.
+  - Replace valid hostnames with the string "HOSTNAME". A valid hostname follows the regex pattern defined in the global variable `hostname_pattern`. For example, `p2eavwaabc-01.intraPRD.abc.com.sg` is replaced with `HOSTNAME_5`.
+- Define a function `save_state` that takes the file name, the input dataframe, the original dataframe, and the counter as arguments and saves them to a state file named "program_state.pkl" using the pickle module.
+- Define a function `load_state` that takes the file name as an argument and loads the program state from the state file if it exists and the file name matches the current file. It returns the input dataframe, the original dataframe, and the counter. If the state file does not exist or the file name does not match, it returns None, None, and 0.
+- Define a function `delete_state` that deletes the state file if it exists.
+- Define a function `write_output` that takes the file name, the input dataframe, the original dataframe, and the pivot table as arguments and writes them to the output Excel file in separate tabs using the `to_excel` method of pandas with the `index=True` argument to preserve the index of the dataframes. The output Excel file will have three tabs: Input, Original, and Command Patterns. The Input tab contains the input dataframe with the simplified values and the references. The Original tab contains the original values and their counts. The Command Patterns tab contains the pivot table of the simplified commands and their counts.
+- Define a function `process_file` that takes the file name as an argument and performs the following steps:
+  - Read the CSV file and store it in a pandas dataframe named `input_df`.
+  - Load the program state from the state file using the `load_state` function and assign the returned values to `input_df`, `original`, and `counter`.
+  - If `input_df` and `original` are None, create an empty dataframe named `original` with two columns: "Value" and "Count".
+  - Get the total number of rows in the `input_df` dataframe and assign it to a variable named `total`.
+  - Loop through the rows of the `input_df` dataframe starting from the `counter` value and get the command string from the "Command/Events" column.
+  - Simplify and replace the command string with the simplified string and the reference value using the `simplify_and_replace` function.
+  - Store the original value and its count in the `original` dataframe. If the original value already exists in the dataframe, increment its count by one. Otherwise, append a new row with the original value and a count of one.
+  - Update the `input_df` dataframe with the simplified string and the reference value in a new column named "Reference".
+  - Increment the `counter` by one.
+  - Print a status message to the standard output showing the percentage of completion.
+  - Save the current program state to the state file using the `save_state` function every time the `counter` reaches a multiple of 0.05% of the `total`.
+  - After the loop is finished, create a pivot table of the simplified commands and their counts using the `pivot_table` function of pandas. The pivot table has the simplified command strings as the index and the counts as the values.
+  - Write the `original` dataframe and the pivot table to the output Excel file using the `write_output` function.
+  - Delete the state file using the `delete_state` function.
+- Loop through all the CSV files in the current directory using the glob module and the pattern "*.csv".
+- For each CSV file, call the `process_file` function with the file name as an argument.
 
 ## Details of the Regexs and the Hostname Specifications
 
