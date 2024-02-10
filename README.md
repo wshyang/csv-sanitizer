@@ -51,6 +51,52 @@ The pivot table should contain:
 | -------------- | --------- |
 | /usr/bin/python PATH | 1 |
 
+## Simplify and Replace Function
+
+The program defines a function `simplify_and_replace` that takes a command string as an argument and returns a simplified string, a list of original strings, and a list of replacement strings that were replaced using the simplification and replacement rules. 
+
+- The simplified string is the command string with the original strings replaced by the replacement strings according to the rules.
+- The original list is the list of original strings that were replaced by the replacement strings in the same order as they appear in the command string.
+- The replacement list is the list of replacement strings that replaced the original strings in the same order as they appear in the command string.
+
+For example, if the command string is:
+
+```python
+/usr/bin/python /home/user/file.txt
+```
+
+The simplified string will be:
+
+```python
+/usr/bin/python PATH
+```
+
+The original list will be:
+
+```python
+["/home/user/file.txt"]
+```
+
+The replacement list will be:
+
+```python
+["PATH"]
+```
+
+The function uses the following logic and algorithm to perform the simplification and replacement:
+
+Initialize the simplified string and the lists of original strings and replacement strings
+- Define the arrays of regex strings and replacement strings
+- Loop through the arrays and perform the replacements
+- Compile the regex pattern
+- Find all the matches in the command string
+- Loop through the matches and replace them with the corresponding replacement string
+- Check if the match is a path and it is at the start of the command string
+- Do not replace or reference the path
+- Replace the match with the replacement string
+- Append the match to the list of original strings
+- Append the replacement string to the list of replacement strings
+- Return the simplified string, the list of original strings, and the list of replacement strings
 
 ## Program State
 
