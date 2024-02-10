@@ -24,11 +24,17 @@ The following are some examples of test cases and scenarios that demonstrate how
 
 #### Test case 1
 
-The input CSV file contains a command string that starts with a path and has another path in the middle. The program should not replace or reference the first path, but should replace and reference the second path. For example:
+The input CSV file contains a command string that starts with a path and has another path in the middle. The program should not replace or reference the first path, but should replace and reference the second path. For example, the input dataframe before processing:
 
 | Command/Events | Reference |
 | -------------- | --------- |
-| /usr/bin/python /home/user/file.txt | PATH_1 |
+| /usr/bin/python /home/user/file.txt |  |
+
+The input dataframe after processing:
+
+| Command/Events | Reference |
+| -------------- | --------- |
+| /usr/bin/python PATH | PATH_1 |
 
 The references dataframe should contain:
 
