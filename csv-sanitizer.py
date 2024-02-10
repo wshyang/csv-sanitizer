@@ -8,15 +8,16 @@ XXX = "abc"
 TLD = "com"
 YY = "sg"
 
+# Define the global variable for the hostname regex pattern
+HOSTNAME_PATTERN = r"(?P<environment>[p|t|q])-(?P<location>[2|3])-(?P<segment>[e|a])-(?P<tier>[a|d|g|i|m|w])-(?P<virtualization>[v|p])-(?P<operating_system>[w|x|r|s|k])-(?P<application>[a-z0-9]{3,4})-(?P<server>[0-9]{2})(?:\.(?P<intra_inter>(intra|inter))(?P<suffix_env>(PRD|QAT))\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+)?\b"
+
 # Define a function to validate the hostname format
 def validate_hostname(hostname):
     # Check if the input is a string
     if not isinstance(hostname, str):
         raise TypeError("Hostname must be a string")
-    # Define the regex pattern for the hostname components
-    pattern = r"(?P<environment>[p|t|q])-(?P<location>[2|3])-(?P<segment>[e|a])-(?P<tier>[a|d|g|i|m|w])-(?P<virtualization>[v|p])-(?P<operating_system>[w|x|r|s|k])-(?P<application>[a-z0-9]{3,4})-(?P<server>[0-9]{2})(?:\.(?P<intra_inter>(intra|inter))(?P<suffix_env>(PRD|QAT))\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+)?\b"
     # Match the input with the pattern, ignoring the case
-    match = re.match(pattern, hostname, re.IGNORECASE)
+    match = re.match(HOSTNAME_PATTERN, hostname, re.IGNORECASE)
     # Check if there is a match
     if match:
         # Get the environment, segment, intra_inter, and suffix_env groups from the match object
@@ -45,112 +46,111 @@ def validate_hostname(hostname):
             suffix_tld = suffix_parts[3].lower()
             suffix_yy = suffix_parts[4].lower()
             # Check if the suffix components match the sensitive values
-            if suffix_xxx == XXX and suffix_tld == TLD and suffix_yy == YY:
+            if suffix_xxx == XXX.lower() and suffix_tld == TLD.lower() and suffix_yy == YY.lower():
                 # Return True if they match
                 return True
             else:
                 # Return False if they do not match
                 return False
         else:
-            # Return True if the suffix is not present
+            # Return True if the suffix is not present and the other components are valid
             return True
     else:
         # Return False if there is no match
         return False
 
-# Define a function to sanitize the command strings
+# Define a function to replace the command strings with sanitized strings and references
 def regex_replace(command):
-    # Define a list of tuples with regex and replacement string
-    regex_list = [
-        # Replace a single quote enclosed block of 8 characters consisting of both upper and lowercase alphanumeric characters, underscore and dash, with the string "ALPHANUM8"
-        (r"'[a-zA-Z0-9_-]{8}'", "ALPHANUM8"),
-        # Replace strings that resemble UNIX paths under the default directories, either not enclosed in quotes, or enclosed in matching single or double quotes, with the string "PATH"
-        (r"(['\"]?/((bin|boot|dev|etc|home|lib|lib64|media|mnt|opt|proc|root|run|sbin|srv|sys|tmp|usr|var)/?)+[^'\"]*['\"]?)", "PATH"),
-        # Replace numbers between 5 and 12 digits long that follow the word "echo" with the string "NUMERIC"
-        (r"(echo\s+)([0-9]{5,12})", r"\1NUMERIC"),
-        # Replace valid hostnames with the string "HOSTNAME"
-        (r"\b([p|t|q][2|3][e|a][a|d|g|i|m|w][v|p][w|x|/r|~s|k][a-z0-9]{3,4}[0-9]{2})(?:\.(intra|inter)\.(PRD|QAT|TRG)\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+))?\b", "HOSTNAME")
-    ]
-    # Initialize an empty list to store the replaced values with suffixes
-    replaced_values = []
-    # Loop through the regex list and apply each expression on the command string
-    for regex, replacement in regex_list:
-        # Find all the matches of the regex in the command string
-        matches = re.findall(regex, command, re.IGNORECASE)
-        # Initialize an empty list to store the suffixes
-        suffixes = []
-        # Loop through the matches and generate the suffixes
+    # Define the regex patterns and replacement strings
+    patterns = [r"'[A-Za-z0-9_-]{8}'", r"(/[^/\s]+)+|('[^']+')|(\"[^\"]+\")", r"(?<=echo )\d{5,12}", HOSTNAME_PATTERN]
+    replacements = ["ALPHANUM8", "PATH", "NUMERIC", "HOSTNAME"]
+    # Initialize an empty list to store the references
+    references = []
+    # Loop through the patterns and replacements
+    for pattern, replacement in zip(patterns, replacements):
+        # Find all the matches in the command string
+        matches = re.findall(pattern, command)
+        # Loop through the matches
         for match in matches:
-            # Check if the match is a tuple (due to capturing groups)
-            if isinstance(match, tuple):
-                # Get the first element of the tuple as the original value
-                original = match[0]
-            else:
-                # Get the match as the original value
-                original = match
-            # Check if the original value already exists in the file specific dataframe
-            if original in df_file.index:
-                # Increment its count by one
-                df_file.loc[original, "count"] += 1
-                # Get the index of the original value as the suffix
-                suffix = df_file.index.get_loc(original)
-            else:
-                # Add the original value to the file specific dataframe and initialize its count to one
-                df_file.loc[original, "count"] = 1
-                # Get the index of the original value as the suffix
-                suffix = df_file.index.get_loc(original)
-            # Append the suffix to the suffixes list
-            suffixes.append(suffix)
-            # Append the replacement string and the suffix to the replaced values list
-            replaced_values.append(replacement + "_" + str(suffix))
-        # Replace the matches with only the replacement string in the command string
-        command = re.sub(regex, replacement, command, flags=re.IGNORECASE)
-    # Return the sanitized command and the replaced values list as a tuple
-    return (command, replaced_values)
+            # Check if the match is a valid hostname
+            if replacement == "HOSTNAME" and not validate_hostname("".join(match)):
+                # Skip the match if it is not a valid hostname
+                continue
+            # Check if the match already exists in the references list
+            if match not in references:
+                # Append the match to the references list
+                references.append(match)
+            # Get the index of the match in the references list
+            index = references.index(match)
+            # Replace the match with the replacement string and the index as the suffix
+            command = command.replace("".join(match), replacement + "_" + str(index))
+    # Return the sanitized command string and the references list as a tuple
+    return (command, references)
 
-# Scan the working directory for all CSV files that don't have a corresponding output file
-files = [file for file in os.listdir() if file.endswith(".csv") and not os.path.exists(file.replace(".csv", "_sanitised.xlsx"))]
-
-# Loop through the CSV files and process them one by one
+# Get the current working directory
+cwd = os.getcwd()
+# Get the list of files in the directory
+files = os.listdir(cwd)
+# Loop through the files
 for file in files:
-    # Read the CSV file with the "Command / Event" column
-    df_input = pd.read_csv(file, usecols=["Command / Event"])
-    # Define a file specific dataframe to store the original strings and their counts
-    df_file = pd.DataFrame(columns=["original", "count"])
-    df_file.set_index("original", inplace=True)
-    # Add a new column to the input dataframe to store the references
-    df_input["References"] = None
-    # Loop through the rows of the input dataframe
-    for index, row in df_input.iterrows():
-        # Get the command string from the "Command / Event" column
-        command = row["Command / Event"]
-        # Call the regex_replace function with the command string
-        sanitized_command, references = regex_replace(command)
-        # Update the command string with the sanitized command in the input dataframe
-        df_input.loc[index, "Command / Event"] = sanitized_command
-        # Update the references with the references list in the input dataframe
-        df_input.loc[index, "References"] = references
-    # Write the input dataframe to the first tab of an Excel file, with the sheet name "Sanitized"
-    df_input.to_excel(file.replace(".csv", "_sanitised.xlsx"), sheet_name="Sanitized", index=False)
-    # Write the file specific dataframe with the original values and their counts to the second tab of the same Excel file, with the sheet name "Original"
-    df_file.to_excel(file.replace(".csv", "_sanitised.xlsx"), sheet_name="Original", startrow=2)
-    # Create a dataframe to store the pattern counts
-    df_pattern = pd.DataFrame(columns=["Pattern", "Count"])
-    # Loop through the regex list and get the replacement string and the count
-    for regex, replacement in regex_list:
-        # Get the count of the replacement string in the file specific dataframe
-        count = df_file[df_file.index.str.contains(replacement, case=False)]["count"].sum()
-        # Append the replacement string and the count to the pattern dataframe
-        df_pattern.loc[len(df_pattern)] = [replacement, count]
-    # Write the pattern dataframe to the third tab of the same Excel file, with the sheet name "Pattern Counts"
-    df_pattern.to_excel(file.replace(".csv", "_sanitised.xlsx"), sheet_name="Pattern Counts", startrow=2, index=False)
-    # Create a pivot table of the sanitized values and their counts in the input dataframe
-    df_pivot = df_input["Command / Event"].value_counts().reset_index()
-    # Rename the columns of the pivot table to "Sanitized Value" and "Count"
-    df_pivot.columns = ["Sanitized Value", "Count"]
-    # Write the pivot table to the fourth tab of the same Excel file, with the sheet name "Command Patterns"
-    df_pivot.to_excel(file.replace(".csv", "_sanitised.xlsx"), sheet_name="Command Patterns", startrow=2, index=False)
-    # Derive the output file name from the input file name
-    output_file = file.replace(".csv", "_sanitised.xlsx")
-    # Print a message to indicate the completion of the processing
-    print(f"Processed {file} and wrote the output to {output_file}")
+    # Check if the file is a CSV file and does not have a corresponding output file
+    if file.endswith(".csv") and not os.path.exists(file[:-4] + "_sanitised.xlsx"):
+        # Print a message indicating the file is being processed
+        print(f"Processing {file}...")
+        # Read the CSV file as a pandas dataframe
+        df = pd.read_csv(file)
+        # Check if the dataframe has the "Command/Events" column
+        if "Command/Events" in df.columns:
+            # Create a file specific dataframe to store the original strings and their counts
+            original_df = pd.DataFrame(columns=["original", "count"])
+            # Create a new column in the input dataframe to store the references
+            df["References"] = ""
+            # Loop through the rows of the input dataframe
+            for i, row in df.iterrows():
+                # Get the command string from the row
+                command = row["Command/Events"]
+                # Replace the command string with the sanitized string and the references
+                sanitized, references = regex_replace(command)
+                # Update the row with the sanitized string and the references
+                df.loc[i, "Command/Events"] = sanitized
+                df.loc[i, "References"] = references
+                # Loop through the references
+                for reference in references:
+                    # Check if the reference already exists in the original dataframe
+                    if reference in original_df["original"].tolist():
+                        # Increment the count of the reference by one
+                        original_df.loc[original_df["original"] == reference, "count"] += 1
+                    else:
+                        # Add the reference and its count to the original dataframe
+                        original_df = pd.concat([original_df, pd.DataFrame({"original": [reference], "count": [1]})], ignore_index=True)
+            # Create a dataframe to store the pattern counts
+            pattern_df = pd.DataFrame(columns=["pattern", "count"])
+            # Loop through the unique values in the original dataframe
+            for value in original_df["original"].unique():
+                # Get the pattern of the value by removing the suffix
+                pattern = value.split("_")[0]
+                # Check if the pattern already exists in the pattern dataframe
+                if pattern in pattern_df["pattern"].values:
+                    # Increment the count of the pattern by the count of the value
+                    pattern_df.loc[pattern_df["pattern"] == pattern, "count"] += original_df.loc[original_df["original"] == value, "count"].values[0]
+                else:
+                    # Add the pattern and its count to the pattern dataframe
+                    pattern_df = pattern_df.append({"pattern": pattern, "count": original_df.loc[original_df["original"] == value, "count"].values[0]}, ignore_index=True)
+            # Create a pivot table of the sanitized values and their counts
+            pivot_df = df.pivot_table(index="Command/Events", values="References", aggfunc="count")
+            # Rename the pivot table column
+            pivot_df.rename(columns={"References": "count"}, inplace=True)
+            # Write the input dataframe to the first tab of an Excel file
+            writer = pd.ExcelWriter(file[:-4] + "_sanitised.xlsx", engine="xlsxwriter")
+            df.to_excel(writer, sheet_name="Sanitized", index=False)
+            # Write the original dataframe to the second tab of the same Excel file
+            original_df.to_excel(writer, sheet_name="Original", index=False)
+            # Write the pattern dataframe to the third tab of the same Excel file
+            pattern_df.to_excel(writer, sheet_name="Pattern Counts", index=False)
+            # Write the pivot table to the fourth tab of the same Excel file
+            pivot_df.to_excel(writer, sheet_name="Command Patterns", index=True)
+            # Save and close the Excel file
+            writer.save()
+            writer.close()
+            # Print a message indicating the file is processed
+            print(f"Processed {file} and saved as {file[:-4] + '_sanitised.xlsx'}")
