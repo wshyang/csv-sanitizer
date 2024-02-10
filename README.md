@@ -77,9 +77,8 @@ The program uses the following logic and algorithm to simplify and analyze the c
 - Define a function `delete_state` that deletes the state file if it exists.
 - Define a function `write_output` that takes the file name, the input dataframe, the original dataframe, and the pivot table as arguments and writes them to the output Excel file in separate tabs using the `to_excel` method of pandas with the `index=True` argument to preserve the index of the dataframes.
 - Define a function `process_file` that takes the file name as an argument and performs the following steps:
-  - Read the CSV file and store it in a pandas dataframe named `input_df`.
   - Load the program state from the state file using the `load_state` function and assign the returned values to `input_df`, `original`, and `counter`.
-  - If `input_df` and `original` are None, create an empty dataframe named `original` with two columns: "Value" and "Count".
+  - If `input_df` and `original` are None, create an empty dataframe named `original` with two columns: "Value" and "Count", then read in the CSV file and store it in a pandas dataframe named `input_df`.
   - Get the total number of rows in the `input_df` dataframe and assign it to a variable named `total`.
   - Loop through the rows of the `input_df` dataframe starting from the `counter` value and get the command string from the "Command/Events" column.
   - Simplify and replace the command string with the simplified string and the list of original strings using the `simplify_and_replace` function.
