@@ -120,20 +120,38 @@ This regex matches any string that follows the hostname format of:
 
 [environment][location][segment][tier][virtualization][operating_system][application][server].suffix
 
-where:
+- Each component has a specific meaning and a set of valid characters, as described below:
 
-environment is one of p, t, or q
-location is either 2 or 3
-segment is either e or a
-tier is one of a, d, g, i, m, or w
-virtualization is either v or p
-operating_system is one of w, x, r, s, or k
-application is a 3 or 4 letter alphanumeric string
-server is a 2 digit number
-suffix is optional and consists of intra_inter and suffix_env (without any delimitor) and followed by XXX, TLD, and YY separated by dots
-The regex also captures the named groups for each component of the hostname.
+    - Environment: This component indicates the environment type of the server. It can be one of the following values:
+        - Production (p): This indicates that the server is used for production purposes, such as hosting live applications or services.
+        - Training (t): This indicates that the server is used for training purposes, such as providing a sandbox environment for learning or testing.
+        - Quality (q): This indicates that the server is used for quality assurance purposes, such as performing verification or validation tests on applications or services.
+    - Location: This component indicates the location code of the server. It can be either 2 or 3, depending on the region where the server is located. For example, 2 for Singapore, 3 for Tokyo, etc.
+    - Segment: This component indicates the business segment of the server. It can be one of the following values:
+        - Internet (e): This indicates that the server is used for internet-facing applications or services, such as web portals or APIs.
+        - Intranet (a): This indicates that the server is used for internal applications or services, such as intranet sites or databases.
+    - Tier: This component indicates the server tier of the server. It can be one of the following values:
+        - App server (a): This indicates that the server is used for application logic or processing, such as running scripts or programs.
+        - Database server (d): This indicates that the server is used for data storage or retrieval, such as hosting databases or files.
+        - Gateway server (g): This indicates that the server is used for network communication or routing, such as providing access to other servers or networks.
+        - Integration server (i): This indicates that the server is used for data integration or transformation, such as performing ETL (Extract, Transform, Load) operations or data cleansing.
+        - Management server (m): This indicates that the server is used for management or administration, such as providing monitoring or security functions.
+        - Web server (w): This indicates that the server is used for web presentation or delivery, such as hosting web pages or static content.
+    - Virtualization: This component indicates the server type of the server. It can be one of the following values:
+        - Virtual server (v): This indicates that the server is a virtual machine or a container, running on a physical host or a cloud platform.
+        - Physical server (p): This indicates that the server is a physical machine or a bare metal server, running on dedicated hardware or a data center.
+    - Operating System: This component indicates the operating system of the server. It can be one of the following values:
+        - Windows (w): This indicates that the server is running on a Windows operating system, such as Windows Server or Windows 10.
+        - Appliance with proprietary OS (x): This indicates that the server is running on a proprietary operating system, such as a network appliance or a security device.
+        - Redhat (r): This indicates that the server is running on a Redhat operating system, such as Redhat Enterprise Linux or Redhat OpenShift.
+        - SuSE (s): This indicates that the server is running on a SuSE operating system, such as SuSE Linux Enterprise or SuSE Cloud.
+        - KMS appliance with proprietary OS (k): This indicates that the server is running on a proprietary operating system, specifically for a Key Management System (KMS) appliance.
+    - Application: This component indicates the application identifier of the server. It can be a unique 3 or 4 character identifier for the application type, such as tns for Tenable, kms for Key Management System, etc.
+    - Server: This component indicates the server identifier of the server. It can be a two-digit number indicating the server identifier within its specific application or type, such as 01, 02, 03, etc.
+    - Suffix: This component is optional and indicates the intra/inter network, the suffix environment, and the sensitive values XXX, TLD, and YY of the server. It can be one of the following formats:
+        - intraprd.XXX.TLD.YY: This indicates that the server is in the intranet network, the suffix environment is production, and the sensitive values are XXX, TLD, and YY. For example, intraprd.abc.com.sg.
+        - interqat.XXX.TLD.YY: This indicates that the server is in the internet network, the suffix environment is quality or training, and the sensitive values are XXX, TLD, and YY. For example, interqat.abc.com.sg.
 
-The hostname specifications are:
 The environment, segment, intra_inter, and suffix_env must be consistent. For example, if the environment is production, the suffix_env must be prd. If the segment is intranet, the intra_inter must be intra. The suffix components must match the sensitive values for XXX, TLD, and YY. For example, if XXX is abc, TLD is com, and YY is sg, the suffix must be intraprd.abc.com.sg or interprd.abc.com.sg. The hostname must be converted to lowercase using casefold() before matching the regex and the specifications. This is to avoid case sensitive issues. For example, P2EAVWAABC01.INTRAPRD.ABC.COM.SG and p2eavwaabc01.intraprd.abc.com.sg are considered the same hostname.
 
 ## Input and Output
