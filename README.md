@@ -140,7 +140,7 @@ The script handles any errors or exceptions gracefully, and provides informative
 
 - The input hostname is not a string.
 - The input hostname does not match the specified pattern.
-- The input file is not a CSV file or does not have the "Command / Event" column.
+- The input file is not a CSV file or does not have the "Command/Events" column.
 - The output file already exists or cannot be written.
 
 ## Assumptions
@@ -151,7 +151,7 @@ The script makes the following assumptions:
 - The script does not perform DNS resolution or check network connectivity.
 - The script does not validate the existence of the server or its configuration; it only validates the format of the hostname string.
 - The CSV files that need to be sanitized are placed in the same directory as the script.
-- The CSV files have a column named "Command / Event" that contains the command strings that need to be sanitized.
+- The CSV files have a column named "Command/Events" that contains the command strings that need to be sanitized.
 - The command strings do not contain any other special characters or symbols that need to be sanitized.
 
 ## Constraints
