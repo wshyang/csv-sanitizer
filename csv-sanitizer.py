@@ -1,6 +1,8 @@
 # Import the required modules
 import os
 import re
+import time
+import pickle
 import pandas as pd
 
 # Define the sensitive values for XXX, TLD, and YY
@@ -97,60 +99,87 @@ for file in files:
     if file.endswith(".csv") and not os.path.exists(file[:-4] + "_sanitised.xlsx"):
         # Print a message indicating the file is being processed
         print(f"Processing {file}...")
-        # Read the CSV file as a pandas dataframe
-        df = pd.read_csv(file)
-        # Check if the dataframe has the "Command/Events" column
-        if "Command/Events" in df.columns:
+        # Check if the program state file exists
+        if os.path.exists("state.pkl"):
+            # Load the program state from the file
+            with open("state.pkl", "rb") as f:
+                state = pickle.load(f)
+            # Get the file name, the input dataframe, the original dataframe, the pattern dataframe, the pivot table, and the counter variable from the state
+            file_name = state["file_name"]
+            df = state["df"]
+            original_df = state["original_df"]
+            pattern_df = state["pattern_df"]
+            pivot_df = state["pivot_df"]
+            counter = state["counter"]
+            # Check if the file name matches the current file
+            if file_name == file:
+                # Print a message indicating the program is resuming from the previous state
+                print(f"Resuming from the previous state at line {counter + 1}...")
+            else:
+                # Print a message indicating the program is starting from the beginning
+                print(f"Starting from the beginning...")
+                # Read the CSV file as a pandas dataframe
+                df = pd.read_csv(file)
+                # Create a file specific dataframe to store the original strings and their counts
+                original_df = pd.DataFrame(columns=["original", "count"])
+                # Create a new column in the input dataframe to store the references
+                df["References"] = ""
+                # Create a dataframe to store the pattern counts
+                pattern_df = pd.DataFrame(columns=["pattern", "count"])
+                # Create a pivot table of the sanitized values and their counts
+                pivot_df = df.pivot_table(index="Command/Events", values="References", aggfunc="count")
+                # Rename the pivot table column
+                pivot_df.rename(columns={"References": "count"}, inplace=True)
+                # Initialize the counter variable to zero
+                counter = 0
+        else:
+            # Read the CSV file as a pandas dataframe
+            df = pd.read_csv(file)
             # Create a file specific dataframe to store the original strings and their counts
             original_df = pd.DataFrame(columns=["original", "count"])
             # Create a new column in the input dataframe to store the references
             df["References"] = ""
-            # Loop through the rows of the input dataframe
-            for i, row in df.iterrows():
-                # Get the command string from the row
-                command = row["Command/Events"]
-                # Replace the command string with the sanitized string and the references
-                sanitized, references = regex_replace(command)
-                # Update the row with the sanitized string and the references
-                df.loc[i, "Command/Events"] = sanitized
-                df.loc[i, "References"] = references
-                # Loop through the references
-                for reference in references:
-                    # Check if the reference already exists in the original dataframe
-                    if reference in original_df["original"].tolist():
-                        # Increment the count of the reference by one
-                        original_df.loc[original_df["original"] == reference, "count"] += 1
-                    else:
-                        # Add the reference and its count to the original dataframe
-                        original_df = pd.concat([original_df, pd.DataFrame({"original": [reference], "count": [1]})], ignore_index=True)
             # Create a dataframe to store the pattern counts
             pattern_df = pd.DataFrame(columns=["pattern", "count"])
-            # Loop through the unique values in the original dataframe
-            for value in original_df["original"].unique():
-                # Get the pattern of the value by removing the suffix
-                pattern = value.split("_")[0]
-                # Check if the pattern already exists in the pattern dataframe
-                if pattern in pattern_df["pattern"].values:
-                    # Increment the count of the pattern by the count of the value
-                    pattern_df.loc[pattern_df["pattern"] == pattern, "count"] += original_df.loc[original_df["original"] == value, "count"].values[0]
-                else:
-                    # Add the pattern and its count to the pattern dataframe
-                    pattern_df = pattern_df.append({"pattern": pattern, "count": original_df.loc[original_df["original"] == value, "count"].values[0]}, ignore_index=True)
             # Create a pivot table of the sanitized values and their counts
             pivot_df = df.pivot_table(index="Command/Events", values="References", aggfunc="count")
             # Rename the pivot table column
             pivot_df.rename(columns={"References": "count"}, inplace=True)
-            # Write the input dataframe to the first tab of an Excel file
-            writer = pd.ExcelWriter(file[:-4] + "_sanitised.xlsx", engine="xlsxwriter")
-            df.to_excel(writer, sheet_name="Sanitized", index=False)
-            # Write the original dataframe to the second tab of the same Excel file
-            original_df.to_excel(writer, sheet_name="Original", index=False)
-            # Write the pattern dataframe to the third tab of the same Excel file
-            pattern_df.to_excel(writer, sheet_name="Pattern Counts", index=False)
-            # Write the pivot table to the fourth tab of the same Excel file
-            pivot_df.to_excel(writer, sheet_name="Command Patterns", index=True)
-            # Save and close the Excel file
-            writer.save()
-            writer.close()
-            # Print a message indicating the file is processed
-            print(f"Processed {file} and saved as {file[:-4] + '_sanitised.xlsx'}")
+            # Initialize the counter variable to zero
+            counter = 0
+        # Get the number of lines to be processed from the input dataframe
+        total_lines = len(df)
+        # Calculate the threshold for printing the status update as 0.5% of the total lines
+        threshold = int(total_lines * 0.005)
+        # Get the current time as the start time
+        start_time = time.time()
+        # Loop through the rows of the input dataframe from the counter value
+        for i, row in df.iterrows()[counter:]:
+            # Get the command string from the row
+            command = row["Command/Events"]
+            # Replace the command string with the sanitized string and the references
+            sanitized, references = regex_replace(command)
+			# Increment the counter by one
+			counter += 1
+			# Check if the counter reaches the threshold
+			if counter % threshold == 0:
+			    # Calculate the percentage of completion
+			    percentage = round(counter / total_lines * 100, 2)
+			    # Get the current time as the end time
+			    end_time = time.time()
+			    # Calculate the elapsed time
+			    elapsed_time = end_time - start_time
+			    # Calculate the remaining time
+			    remaining_time = elapsed_time / percentage * (100 - percentage)
+			    # Format the elapsed time and the remaining time as hh:mm:ss
+			    elapsed_time_str = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+			    remaining_time_str = time.strftime("%H:%M:%S", time.gmtime(remaining_time))
+			    # Print the status update with the percentage, the elapsed time, and the estimated time of completion
+			    print(f"{percentage}% completed in {elapsed_time_str}. Estimated time of completion: {remaining_time_str}.")
+			    # Create a program state with the file name, the input dataframe, the original dataframe, the pattern dataframe, the pivot table, and the counter variable
+			    state = {"file_name": file, "df": df, "original_df": original_df, "pattern_df": pattern_df, "pivot_df": pivot_df, "counter": counter}
+			    # Save the program state to the state file
+			    with open("state.pkl", "wb") as f:
+			        pickle.dump(state, f)
+            # Update the row with the sanitized string and the references
+            df.loc[i, "Command/Events"] = sanitized
