@@ -25,7 +25,7 @@ The script performs the following tasks:
     - Replace strings that resemble UNIX paths under the default directories, either not enclosed in quotes, or enclosed in matching single or double quotes, with the string "PATH".
     - Replace numbers between 5 and 12 digits long that follow the word "echo" with the string "NUMERIC".
     - Replace valid hostnames with the string "HOSTNAME".
-- It stores the original values and their counts in a dataframe specific for each file, and checks if the value already exists before adding it to the dataframe. The index of the original value in the dataframe is used as the suffix for the replacement string, preceded by an underscore.
+- It stores the original values and their counts in a dataframe specific for each file, and checks if the value already exists in the dataframe before adding it to the dataframe. The index of the original value in the dataframe is used as the suffix for the replacement string, preceded by an underscore.
 - It adds a new column to the input dataframe to store the references, which are the replacement strings with the suffixes. The command strings in the input dataframe are updated with the sanitized command strings, which are the replacement strings without the suffixes.
 - It writes the input dataframe to the first tab of an Excel file, with the sheet name "Sanitized".
 - It writes the file specific dataframe with the original values and their counts to the second tab of the same Excel file, with the sheet name "Original".
