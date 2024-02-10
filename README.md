@@ -22,7 +22,9 @@ The program simplifies and replaces the command strings with simplified strings 
 
 The following are some examples of test cases and scenarios that demonstrate how the program should simplify and replace the command strings in the input CSV file.
 
-- Test case 1: The input CSV file contains a command string that starts with a path and has another path in the middle. The program should not replace or reference the first path, but should replace and reference the second path. For example:
+#### Test case 1
+
+The input CSV file contains a command string that starts with a path and has another path in the middle. The program should not replace or reference the first path, but should replace and reference the second path. For example:
 
 | Command/Events | Reference |
 | -------------- | --------- |
