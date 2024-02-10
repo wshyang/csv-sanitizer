@@ -5,17 +5,17 @@
 The program is designed to perform the following tasks:
 
 - Read a CSV file that contains a column named "Command/Events" with command strings
-- Replace the command strings with sanitized strings that mask the sensitive values such as paths, numbers, hostnames, etc. with generic strings and references
+- Replace the command strings with simplified strings that mask the sensitive values such as paths, numbers, hostnames, etc. with generic strings and references
 - Store the original values and their counts in a separate dataframe
-- Store the pattern counts of the sanitized values in another dataframe
-- Create a pivot table of the sanitized values and their counts
+- Store the pattern counts of the simplified values in another dataframe
+- Create a pivot table of the simplified values and their counts
 - Write the input dataframe, the original dataframe, the pattern dataframe, and the pivot table to an Excel file with four tabs
 - Print a status update and an estimated time of completion when every 0.5% of the lines are processed
 - Save the program state to a file so that it can be resumed later if interrupted
 
 ## Input and Output
 
-The program takes a CSV file as the input, and writes an Excel file as the output. The input CSV file must have a column named "Command/Events" that contains the command strings to be sanitized. The output Excel file will have four tabs: "Sanitized", "Original", "Pattern Counts", and "Command Patterns". The "Sanitized" tab will contain the input dataframe with the sanitized strings and the references. The "Original" tab will contain the original values and their counts. The "Pattern Counts" tab will contain the pattern counts of the sanitized values. The "Command Patterns" tab will contain the pivot table of the sanitized values and their counts.
+The program takes a CSV file as the input, and writes an Excel file as the output. The input CSV file must have a column named "Command/Events" that contains the command strings to be simplified. The output Excel file will have four tabs: "Simplified", "Original", "Pattern Counts", and "Command Patterns". The "Simplified" tab will contain the input dataframe with the simplified strings and the references. The "Original" tab will contain the original values and their counts. The "Pattern Counts" tab will contain the pattern counts of the simplified values. The "Command Patterns" tab will contain the pivot table of the simplified values and their counts. The output file name will be derived from the source file name by appending a suffix of "_simplified". For example, if the input file name is "commands.csv", the output file name will be "commands_simplified.xlsx".
 
 ## Logic and Algorithm
 
@@ -25,7 +25,7 @@ The program uses the following logic and algorithm to perform the tasks:
 - Define the sensitive values for XXX, TLD, and YY
 - Define the global variable for the hostname regex pattern
 - Define a function to validate the hostname format
-- Define a function to replace the command strings with sanitized strings and references
+- Define a function to replace the command strings with simplified strings and references
 - Get the current working directory
 - Get the list of files in the directory
 - Loop through the files
@@ -35,15 +35,15 @@ The program uses the following logic and algorithm to perform the tasks:
             - If it exists, load the program state from the file and get the file name, the input dataframe, the original dataframe, the pattern dataframe, the pivot table, and the counter variable from the state
                 - Check if the file name matches the current file
                     - If it matches, print a message indicating the program is resuming from the previous state
-                    - If it does not match, print a message indicating the program is starting from the beginning and read the CSV file as a pandas dataframe, create a file specific dataframe to store the original strings and their counts, create a new column in the input dataframe to store the references, create a dataframe to store the pattern counts, create a pivot table of the sanitized values and their counts, and initialize the counter variable to zero
-            - If it does not exist, read the CSV file as a pandas dataframe, create a file specific dataframe to store the original strings and their counts, create a new column in the input dataframe to store the references, create a dataframe to store the pattern counts, create a pivot table of the sanitized values and their counts, and initialize the counter variable to zero
+                    - If it does not match, print a message indicating the program is starting from the beginning and read the CSV file as a pandas dataframe, create a file specific dataframe to store the original strings and their counts, create a new column in the input dataframe to store the references, create a dataframe to store the pattern counts, create a pivot table of the simplified values and their counts, and initialize the counter variable to zero
+            - If it does not exist, read the CSV file as a pandas dataframe, create a file specific dataframe to store the original strings and their counts, create a new column in the input dataframe to store the references, create a dataframe to store the pattern counts, create a pivot table of the simplified values and their counts, and initialize the counter variable to zero
         - Get the number of lines to be processed from the input dataframe
         - Calculate the threshold for printing the status update as 0.5% of the total lines
         - Get the current time as the start time
         - Loop through the rows of the input dataframe from the counter value
             - Get the command string from the row
-            - Replace the command string with the sanitized string and the references
-            - Update the row with the sanitized string and the references
+            - Replace the command string with the simplified string and the references
+            - Update the row with the simplified string and the references
             - Increment the counter by one
             - Check if the counter reaches the threshold
                 - If it does, calculate the percentage of completion, the elapsed time, and the remaining time
