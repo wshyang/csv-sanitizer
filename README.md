@@ -1,22 +1,3 @@
-# Functional Specifications
-
-## Overview
-
-The program is designed to perform the following tasks:
-
-- Read a CSV file that contains a column named "Command/Events" with command strings
-- Replace the command strings with simplified strings that mask the sensitive values such as paths, numbers, hostnames, etc. with generic strings and references
-- Store the original values and their counts in a separate dataframe
-- Store the pattern counts of the simplified values in another dataframe
-- Create a pivot table of the simplified values and their counts
-- Write the input dataframe, the original dataframe, the pattern dataframe, and the pivot table to an Excel file with four tabs
-- Print a status update and an estimated time of completion when every 0.5% of the lines are processed
-- Save the program state to a file so that it can be resumed later if interrupted
-
-## Input and Output
-
-The program takes a CSV file as the input, and writes an Excel file as the output. The input CSV file must have a column named "Command/Events" that contains the command strings to be simplified. The output Excel file will have four tabs: "Simplified", "Original", "Pattern Counts", and "Command Patterns". The "Simplified" tab will contain the input dataframe with the simplified strings and the references. The "Original" tab will contain the original values and their counts. The "Pattern Counts" tab will contain the pattern counts of the simplified values. The "Command Patterns" tab will contain the pivot table of the simplified values and their counts. The output file name will be derived from the source file name by appending a suffix of "_simplified". For example, if the input file name is "commands.csv", the output file name will be "commands_simplified.xlsx".
-
 ## Logic and Algorithm
 
 The program uses the following logic and algorithm to perform the tasks:
@@ -35,8 +16,8 @@ The program uses the following logic and algorithm to perform the tasks:
             - If it exists, load the program state from the file and get the file name, the input dataframe, the original dataframe, the pattern dataframe, the pivot table, and the counter variable from the state
                 - Check if the file name matches the current file
                     - If it matches, print a message indicating the program is resuming from the previous state
-                    - If it does not match, print a message indicating the program is starting from the beginning and read the CSV file as a pandas dataframe, create a file specific dataframe to store the original strings and their counts, create a new column in the input dataframe to store the references, create a dataframe to store the pattern counts, create a pivot table of the simplified values and their counts, and initialize the counter variable to zero
-            - If it does not exist, read the CSV file as a pandas dataframe, create a file specific dataframe to store the original strings and their counts, create a new column in the input dataframe to store the references, create a dataframe to store the pattern counts, create a pivot table of the simplified values and their counts, and initialize the counter variable to zero
+                    - If it does not match, print a message indicating the program is starting from the beginning and read the CSV file as a pandas dataframe, create a file specific dataframe to store the original values and their counts, create a new column in the input dataframe to store the references, create a dataframe to store the pattern counts, create a pivot table of the simplified values and their counts, and initialize the counter variable to zero
+            - If it does not exist, read the CSV file as a pandas dataframe, create a file specific dataframe to store the original values and their counts, create a new column in the input dataframe to store the references, create a dataframe to store the pattern counts, create a pivot table of the simplified values and their counts, and initialize the counter variable to zero
         - Get the number of lines to be processed from the input dataframe
         - Calculate the threshold for printing the status update as 0.5% of the total lines
         - Get the current time as the start time
@@ -51,9 +32,9 @@ The program uses the following logic and algorithm to perform the tasks:
                 - Create a program state with the file name, the input dataframe, the original dataframe, the pattern dataframe, the pivot table, and the counter variable
                 - Save the program state to the state file
             - Search through the references
-                - Check if the reference already exists in the original dataframe
-                    - If it does, increment the count of the reference by one
-                    - If it does not, add the reference and its count to the original dataframe
+                - For each reference, check if the value already exists in the original dataframe
+                    - If it does, increment the count of the value by one
+                    - If it does not, add the value and its count to the original dataframe
         - Search through the unique values in the original dataframe
             - Get the pattern of the value by removing the suffix
             - Check if the pattern already exists in the pattern dataframe
@@ -108,3 +89,9 @@ The regex also captures the named groups for each component of the hostname.
 
 The hostname specifications are:
 The environment, segment, intra_inter, and suffix_env must be consistent. For example, if the environment is production, the suffix_env must be PRD. If the segment is intranet, the intra_inter must be intra. The suffix components must match the sensitive values for XXX, TLD, and YY. For example, if XXX is abc, TLD is com, and YY is sg, the suffix must be intraPRD.abc.com.sg or interPRD.abc.com.sg. The hostname must be converted to lowercase using casefold() before matching the regex and the specifications. This is to avoid case sensitive issues. For example, P-2-E-A-V-W-A-ABC-01.intraPRD.ABC.COM.SG and p-2-e-a-v-w-a-abc-01.intraprd.abc.com.sg are considered the same hostname.
+
+## Input and Output
+The program takes a CSV file as the input, and writes an Excel file as the output. The input CSV file must have a column named “Command/Events” that contains the command strings to be simplified. The output Excel file will have four tabs: “Simplified”, “Original”, “Pattern Counts”, and “Command Patterns”. The “Simplified” tab will contain the input dataframe with the simplified strings and the references. The “Original” tab will contain the original values and their counts. The “Pattern Counts” tab will contain the pattern counts of the simplified values. The “Command Patterns” tab will contain the pivot table of the simplified values and their counts. The output file name will be derived from the source file name by appending a suffix of “_simplified”. For example, if the input file name is “commands.csv”, the output file name will be “commands_simplified.xlsx”.
+
+## How the References are Generated
+The references are generated by appending a suffix of the index number to the simplified value. For example, if the simplified value is PATH, the reference value will be PATH_1, PATH_2, etc. depending on how many times the path value has been encountered and replaced in the input dataframe. The reference values are stored as a comma separated list in the new Reference column of the input dataframe. The Original dataframe has an Index column that corresponds to the reference suffixes. For example, if the reference value is PATH_1, the Index column will have the value 1. This way, the references can be easily correlated with the original values and their counts.
