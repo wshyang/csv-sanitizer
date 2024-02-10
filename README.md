@@ -1,115 +1,111 @@
-# CSV Sanitizer
+# Functional Specifications
 
-This is a Python script that reads a CSV file that contains a column of command strings that need to be sanitized, and writes an Excel file with four tabs: one with the sanitized version of the original CSV table, one with a dataframe of the original values and their counts, one with a dataframe of the pattern counts, and one with a pivot table of the sanitized values and their counts.
+## Overview
 
-## Requirements
+The program is designed to perform the following tasks:
 
-- Python 3
-- pandas
+- Read a CSV file that contains a column named "Command/Events" with command strings
+- Replace the command strings with sanitized strings that mask the sensitive values such as paths, numbers, hostnames, etc. with generic strings and references
+- Store the original values and their counts in a separate dataframe
+- Store the pattern counts of the sanitized values in another dataframe
+- Create a pivot table of the sanitized values and their counts
+- Write the input dataframe, the original dataframe, the pattern dataframe, and the pivot table to an Excel file with four tabs
+- Print a status update and an estimated time of completion when every 0.5% of the lines are processed
+- Save the program state to a file so that it can be resumed later if interrupted
 
-## Usage
+## Input and Output
 
-- Place the CSV files that need to be sanitized in the same directory as the script.
-- Run the script with `python csv_sanitizer.py`.
-- The script will scan the directory for all CSV files that don't have a corresponding output file with the same name and "_sanitised" added, and process them one by one.
-- The output files will be named as the input files with "_sanitised.xlsx" added, and will have four tabs: "Sanitized", "Original", "Pattern Counts", and "Command Patterns".
+The program takes a CSV file as the input, and writes an Excel file as the output. The input CSV file must have a column named "Command/Events" that contains the command strings to be sanitized. The output Excel file will have four tabs: "Sanitized", "Original", "Pattern Counts", and "Command Patterns". The "Sanitized" tab will contain the input dataframe with the sanitized strings and the references. The "Original" tab will contain the original values and their counts. The "Pattern Counts" tab will contain the pattern counts of the sanitized values. The "Command Patterns" tab will contain the pivot table of the sanitized values and their counts.
 
-## Functionality
+## Logic and Algorithm
 
-The script performs the following tasks:
+The program uses the following logic and algorithm to perform the tasks:
 
-- It defines a file specific dataframe to store the original strings and their counts, with the columns "original" and "count".
-- It defines a global variable for the hostname regex pattern, which is used to validate and replace the hostnames in the command strings.
-- It defines a function `regex_replace` that takes a string as an input and returns a tuple of two elements: the sanitized string and the references list. The function applies a series of regex replacements on each command string to sanitize them. The regex replacements are as follows:
-    - Replace a single quote enclosed block of 8 characters consisting of both upper and lowercase alphanumeric characters, underscore and dash, with the string "ALPHANUM8".
-    - Replace strings that resemble UNIX paths under the default directories, either not enclosed in quotes, or enclosed in matching single or double quotes, with the string "PATH".
-    - Replace numbers between 5 and 12 digits long that follow the word "echo" with the string "NUMERIC".
-    - Replace valid hostnames with the string "HOSTNAME".
-- It stores the original values and their counts in a dataframe specific for each file, and checks if the value already exists in the dataframe before adding it to the dataframe. The index of the original value in the dataframe is used as the suffix for the replacement string, preceded by an underscore.
-- It adds a new column to the input dataframe to store the references, which are the replacement strings with the suffixes. The command strings in the input dataframe are updated with the sanitized command strings, which are the replacement strings without the suffixes.
-- It writes the input dataframe to the first tab of an Excel file, with the sheet name "Sanitized".
-- It writes the file specific dataframe with the original values and their counts to the second tab of the same Excel file, with the sheet name "Original".
-- It creates a dataframe to store the pattern counts, which are the replacement strings and their counts in the file specific dataframe. It writes the pattern dataframe to the third tab of the same Excel file, with the sheet name "Pattern Counts".
-- It creates a pivot table of the sanitized values and their counts in the input dataframe. It writes the pivot table to the fourth tab of the same Excel file, with the sheet name "Command Patterns".
+- Import the required modules: os, re, time, pickle, and pandas
+- Define the sensitive values for XXX, TLD, and YY
+- Define the global variable for the hostname regex pattern
+- Define a function to validate the hostname format
+- Define a function to replace the command strings with sanitized strings and references
+- Get the current working directory
+- Get the list of files in the directory
+- Loop through the files
+    - Check if the file is a CSV file and does not have a corresponding output file
+        - Print a message indicating the file is being processed
+        - Check if the program state file exists
+            - If it exists, load the program state from the file and get the file name, the input dataframe, the original dataframe, the pattern dataframe, the pivot table, and the counter variable from the state
+                - Check if the file name matches the current file
+                    - If it matches, print a message indicating the program is resuming from the previous state
+                    - If it does not match, print a message indicating the program is starting from the beginning and read the CSV file as a pandas dataframe, create a file specific dataframe to store the original strings and their counts, create a new column in the input dataframe to store the references, create a dataframe to store the pattern counts, create a pivot table of the sanitized values and their counts, and initialize the counter variable to zero
+            - If it does not exist, read the CSV file as a pandas dataframe, create a file specific dataframe to store the original strings and their counts, create a new column in the input dataframe to store the references, create a dataframe to store the pattern counts, create a pivot table of the sanitized values and their counts, and initialize the counter variable to zero
+        - Get the number of lines to be processed from the input dataframe
+        - Calculate the threshold for printing the status update as 0.5% of the total lines
+        - Get the current time as the start time
+        - Loop through the rows of the input dataframe from the counter value
+            - Get the command string from the row
+            - Replace the command string with the sanitized string and the references
+            - Update the row with the sanitized string and the references
+            - Increment the counter by one
+            - Check if the counter reaches the threshold
+                - If it does, calculate the percentage of completion, the elapsed time, and the remaining time
+                - Print the status update with the percentage, the elapsed time, and the estimated time of completion
+                - Create a program state with the file name, the input dataframe, the original dataframe, the pattern dataframe, the pivot table, and the counter variable
+                - Save the program state to the state file
+            - Search through the references
+                - Check if the reference already exists in the original dataframe
+                    - If it does, increment the count of the reference by one
+                    - If it does not, add the reference and its count to the original dataframe
+        - Search through the unique values in the original dataframe
+            - Get the pattern of the value by removing the suffix
+            - Check if the pattern already exists in the pattern dataframe
+                - If it does, increment the count of the pattern by the count of the value
+                - If it does not, add the pattern and its count to the pattern dataframe
+        - Write the input dataframe, the original dataframe, the pattern dataframe, and the pivot table to an Excel file with four tabs
+        - Delete the program state file
+        - Print a message indicating the file is processed and saved
 
-## Hostname Format and Validation
+## Details of the Regexs and the Hostname Specifications
 
-- A hostname is a string that uniquely identifies a server in a network.
-- A hostname consists of seven components, separated by hyphens, that indicate various attributes such as environment, location, segment, tier, virtualization, operating system, and application.
-- A hostname may also have an optional suffix, preceded by a dot, that indicates the intra/inter network, the suffix environment, and the sensitive values XXX, TLD, and YY.
-- The format of a hostname is as follows:
+The program uses the following regexs and hostname specifications to perform the string replacements:
 
-`environment-location-segment-tier-virtualization-operating_system-application-server.suffix`
+- The regex for matching paths is:
 
-- Each component has a specific meaning and a set of valid characters, as described below:
+```python
+r"(/(bin|boot|dev|etc|home|lib|lib64|media|mnt|opt|proc|root|run|sbin|srv|sys|tmp|usr|var)(/[^/\s]+)*)|('[^']+')|(\"[^\"]+\")"
+```
 
-    - Environment: This component indicates the environment type of the server. It can be one of the following values:
-        - Production (p): This indicates that the server is used for production purposes, such as hosting live applications or services.
-        - Training (t): This indicates that the server is used for training purposes, such as providing a sandbox environment for learning or testing.
-        - Quality (q): This indicates that the server is used for quality assurance purposes, such as performing verification or validation tests on applications or services.
-    - Location: This component indicates the location code of the server. It can be either 2 or 3, depending on the region where the server is located. For example, 2 for Singapore, 3 for Tokyo, etc.
-    - Segment: This component indicates the business segment of the server. It can be one of the following values:
-        - Internet (e): This indicates that the server is used for internet-facing applications or services, such as web portals or APIs.
-        - Intranet (a): This indicates that the server is used for internal applications or services, such as intranet sites or databases.
-    - Tier: This component indicates the server tier of the server. It can be one of the following values:
-        - App server (a): This indicates that the server is used for application logic or processing, such as running scripts or programs.
-        - Database server (d): This indicates that the server is used for data storage or retrieval, such as hosting databases or files.
-        - Gateway server (g): This indicates that the server is used for network communication or routing, such as providing access to other servers or networks.
-        - Integration server (i): This indicates that the server is used for data integration or transformation, such as performing ETL (Extract, Transform, Load) operations or data cleansing.
-        - Management server (m): This indicates that the server is used for management or administration, such as providing monitoring or security functions.
-        - Web server (w): This indicates that the server is used for web presentation or delivery, such as hosting web pages or static content.
-    - Virtualization: This component indicates the server type of the server. It can be one of the following values:
-        - Virtual server (v): This indicates that the server is a virtual machine or a container, running on a physical host or a cloud platform.
-        - Physical server (p): This indicates that the server is a physical machine or a bare metal server, running on dedicated hardware or a data center.
-    - Operating System: This component indicates the operating system of the server. It can be one of the following values:
-        - Windows (w): This indicates that the server is running on a Windows operating system, such as Windows Server or Windows 10.
-        - Appliance with proprietary OS (x): This indicates that the server is running on a proprietary operating system, such as a network appliance or a security device.
-        - Redhat (r): This indicates that the server is running on a Redhat operating system, such as Redhat Enterprise Linux or Redhat OpenShift.
-        - SuSE (s): This indicates that the server is running on a SuSE operating system, such as SuSE Linux Enterprise or SuSE Cloud.
-        - KMS appliance with proprietary OS (k): This indicates that the server is running on a proprietary operating system, specifically for a Key Management System (KMS) appliance.
-    - Application: This component indicates the application identifier of the server. It can be a unique 3 or 4 character identifier for the application type, such as tns for Tenable, kms for Key Management System, etc.
-    - Server: This component indicates the server identifier of the server. It can be a two-digit number indicating the server identifier within its specific application or type, such as 01, 02, 03, etc.
-    - Suffix: This component is optional and indicates the intra/inter network, the suffix environment, and the sensitive values XXX, TLD, and YY of the server. It can be one of the following formats:
-        - intraPRD.XXX.TLD.YY: This indicates that the server is in the intranet network, the suffix environment is production, and the sensitive values are XXX, TLD, and YY. For example, intraPRD.abc.com.sg.
-        - interQAT.XXX.TLD.YY: This indicates that the server is in the internet network, the suffix environment is quality or training, and the sensitive values are XXX, TLD, and YY. For example, interQAT.abc.com.sg.
+This regex matches any string that starts with a slash and contains one of the default directories as the first component, followed by zero or more non-slash and non-whitespace characters, or any string that is enclosed in matching single or double quotes.
 
-- To validate a given hostname string, a function can be defined that uses the global hostname regex pattern to match each component of the hostname according to the specified requirements. The function returns True if the hostname matches the pattern and is consistent with the environment, segment, and suffix, and False otherwise. The function also raises a TypeError if the input hostname is not a string.
+The regex for matching numbers is:
 
-## Error Handling
+```python
+r"(?<=echo )\d{5,12}"
+```
 
-The script handles any errors or exceptions gracefully, and provides informative messages to the user. Some possible errors or exceptions are:
+This regex matches any string that consists of 5 to 12 digits and is preceded by the word “echo”.
 
-- The input hostname is not a string.
-- The input hostname does not match the specified pattern.
-- The input file is not a CSV file or does not have the "Command/Events" column.
-- The output file already exists or cannot be written.
+The regex for matching hostnames is:
 
-## Assumptions
+```python
+r"(?P<environment>[p|t|q])-(?P<location>[2|3])-(?P<segment>[e|a])-(?P<tier>[a|d|g|i|m|w])-(?P<virtualization>[v|p])-(?P<operating_system>[w|x|r|s|k])-(?P<application>[a-z0-9]{3,4})-(?P<server>[0-9]{2})(?:\.(?P<intra_inter>(intra|inter))(?P<suffix_env>(PRD|QAT))\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+)?\b"
+```
 
-The script makes the following assumptions:
+This regex matches any string that follows the hostname format of:
 
-- The provided hostname string contains alphanumeric characters only.
-- The script does not perform DNS resolution or check network connectivity.
-- The script does not validate the existence of the server or its configuration; it only validates the format of the hostname string.
-- The CSV files that need to be sanitized are placed in the same directory as the script.
-- The CSV files have a column named "Command/Events" that contains the command strings that need to be sanitized.
-- The command strings do not contain any other special characters or symbols that need to be sanitized.
+environment-location-segment-tier-virtualization-operating_system-application-server.suffix
 
-## Constraints
+where:
 
-The script has the following constraints:
+environment is one of p, t, or q
+location is either 2 or 3
+segment is either e or a
+tier is one of a, d, g, i, m, or w
+virtualization is either v or p
+operating_system is one of w, x, r, s, or k
+application is a 3 or 4 letter alphanumeric string
+server is a 2 digit number
+suffix is optional and consists of intra_inter, suffix_env, XXX, TLD, and YY separated by dots
+The regex also captures the named groups for each component of the hostname.
 
-- The script is designed to work with hostnames that adhere to the specified pattern. Hostnames deviating from this pattern may not be accurately validated.
-- The script is designed to work with command strings that match the specified regex expressions. Command strings deviating from these expressions may not be accurately sanitized.
-
-## Dependencies
-
-The script depends on the following modules:
-
-- os
-- re
-- pandas
-
-## Version History
-
-- v1.0: Initial release.
+The hostname specifications are:
+The environment, segment, intra_inter, and suffix_env must be consistent. For example, if the environment is production, the suffix_env must be PRD. If the segment is intranet, the intra_inter must be intra.
+The suffix components must match the sensitive values for XXX, TLD, and YY. For example, if XXX is abc, TLD is com, and YY is sg, the suffix must be intra.PRD.abc.com.sg or inter.PRD.abc.com.sg.
