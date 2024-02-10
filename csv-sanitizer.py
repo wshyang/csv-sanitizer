@@ -4,6 +4,7 @@ import re
 import time
 import pickle
 import pandas as pd
+from itertools import islice
 
 # Define the sensitive values for XXX, TLD, and YY
 XXX = "abc"
@@ -154,7 +155,7 @@ for file in files:
         # Get the current time as the start time
         start_time = time.time()
         # Loop through the rows of the input dataframe from the counter value
-        for i, row in df.iterrows()[counter:]:
+        for i, row in islice(df.iterrows(), counter, None):
             # Get the command string from the row
             command = row["Command/Events"]
             # Replace the command string with the sanitized string and the references
