@@ -35,7 +35,8 @@ The program uses the following logic and algorithm to simplify and analyze the c
 
 - Import the modules os, sys, glob, pandas, and re.
 - Define a global variable `hostname_pattern` that contains the regex pattern for valid hostnames.
-- Define a function `simplify_and_replace` that takes a command string as an argument and returns a simplified string and a reference value using the simplification and replacement rules.
+- Define a function `simplify_and_replace` that takes a command string as an argument and returns a simplified string and a reference value using the simplification and replacement rules. 
+- In simplify_and_replace, the regex strings and replacement strings should be in arrays to help reduce repetition in the code.
 - Define a function `save_state` that takes the file name, the input dataframe, the references dataframe, and the counter as arguments and saves them to the state file using the pickle module.
 - Define a function `load_state` that takes the file name as an argument and loads the program state from the state file if it exists and the file name matches the current file. It returns the input dataframe, the references dataframe, and the counter. If the state file does not exist or the file name does not match, it returns None, None, and 0.
 - Define a function `delete_state` that deletes the state file if it exists.
