@@ -85,14 +85,15 @@ The replacement list will be:
 
 The function uses the following logic and algorithm to perform the simplification and replacement:
 
-Initialize the simplified string and the lists of original strings and replacement strings
-- Define the arrays of regex strings and replacement strings
-- Loop through the arrays and perform the replacements
-- Compile the regex pattern
-- Use the `re.match` function to find the matches of the regex pattern in the command string. Use the `group(n)` method of the match object to get the matched group by an index. The index `n` is the same as the index of the non-empty group in the regex pattern. For all patterns, `n` should be 0, because the desired behaviour is to return the entire string that matches the regex pattern. Replace the match with the corresponding replacement string and append it to the list of original strings and replacement strings. Repeat this process until there is no match.
-- Loop through the matches and replace them with the corresponding replacement string
-- Check if the match is a path and it is at the start of the command string
-- Do not replace or reference the path
+The program simplifies and replaces the command strings with simplified strings and references using the following steps:
+
+- Define the arrays of regex strings for the match patterns and replacement strings
+- For each command string, do the following:
+  - Initialize the simplified string and the lists of original and replacement strings
+  - For each pattern, do the following:
+    - Find the part of the command string that matches the pattern using `re.match` and `group(0)`
+    - If the part is a path and it is at the start of the command string, do not replace or reference it
+    - Otherwise, replace the part with the corresponding replacement string and add it to the lists of original and replacement strings
 - Replace the match with the replacement string
 - Append the match to the list of original strings
 - Append the replacement string to the list of replacement strings
