@@ -89,7 +89,7 @@ Initialize the simplified string and the lists of original strings and replaceme
 - Define the arrays of regex strings and replacement strings
 - Loop through the arrays and perform the replacements
 - Compile the regex pattern
-- Find all the matches in the command string
+- Use the `re.match` function to find the matches of the regex pattern in the command string. Use the `group(n)` method of the match object to get the matched group by an index. The index `n` is the same as the index of the non-empty group in the regex pattern. For all patterns, `n` should be 0, because the desired behaviour is to return the entire string that matches the regex pattern. Replace the match with the corresponding replacement string and append it to the list of original strings and replacement strings. Repeat this process until there is no match.
 - Loop through the matches and replace them with the corresponding replacement string
 - Check if the match is a path and it is at the start of the command string
 - Do not replace or reference the path
