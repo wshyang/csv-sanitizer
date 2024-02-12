@@ -142,7 +142,7 @@ The program uses the following logic and algorithm to simplify and analyze the c
     - Call the save_state function with the file name, the input dataframe, the `OriginalReferencesDataframe` dataframe, and the counter as arguments. This will save the current progress of the program to a state file.
     - Print a message to the standard output that shows how many lines have been processed and what percentage of the total that is.
     - Calculate the average time per line and the remaining time based on the current time and the start time. Print a message to the standard output that shows the estimated time to finish the program.
-  - Generate the reference value and the updated `OriginalReferencesDataframe` dataframe using the `generate_references` function with the list of original strings and the `OriginalReferencesDataframe` dataframe as arguments.
+  - Generate the reference value using the `generate_references` function with the list of original strings and the `OriginalReferencesDataframe` dataframe as arguments.
     - Update the `input_df` dataframe with the simplified string and the reference value in a new column named "Reference".
     - Increment the `counter` by one.
   - After the loop is finished, create a pivot table of the simplified commands and their counts using the `pivot_table` function of pandas. The pivot table has the simplified command strings as the index and the counts as the values.
