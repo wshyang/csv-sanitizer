@@ -115,14 +115,7 @@ The program simplifies and replaces the command strings with simplified strings 
 
 ## Program State
 
-The program saves and loads the program state to and from a state file named "program_state.pkl". The program state is a dictionary that contains the following keys and values:
-
-- "file_name": the name of the input CSV file
-- "input_df": the input dataframe
-- "original": the references dataframe
-- "counter": the counter variable that tracks the progress of the program
-
-The program saves the program state to the state file every time it reaches a threshold of 0.5% of the total lines to be processed. The program loads the program state from the state file if it exists and the file name matches the current file. The program resumes from the previous state at the line indicated by the counter value. The program deletes the state file after the output file is written and saved.
+The program maintains a state, saved to a 'program_state.pkl' file, which includes the file name, input dataframe, references dataframe, and a counter variable; this state is loaded if it exists and matches the current file, and is deleted after the output file is saved. The program saves the state every time it processes 0.5% of the total lines and resumes from the previous state at the line indicated by the counter value.
 
 ## Logic and Algorithm
 
@@ -223,4 +216,4 @@ This regex matches any string that follows the hostname format of:
 The environment, segment, intra_inter, and suffix_env must be consistent. For example, if the environment is production, the suffix_env must be prd. If the segment is intranet, the intra_inter must be intra. The suffix components must match the sensitive values for XXX, TLD, and YY. For example, if XXX is abc, TLD is com, and YY is sg, the suffix must be intraprd.abc.com.sg or interprd.abc.com.sg. The hostname must be converted to lowercase using casefold() before matching the regex and the specifications. This is to avoid case sensitive issues. For example, P2EAVWAABC01.INTRAPRD.ABC.COM.SG and p2eavwaabc01.intraprd.abc.com.sg are considered the same hostname.
 
 ## Input and Output
-The program takes a CSV file as the input, and writes an Excel file as the output. The input CSV file must have a column named “Command/Events” that contains the command strings to be simplified. The output Excel file will have four tabs: “Simplified”, “Original”, “Pattern Counts”, and “Command Patterns”. The “Simplified” tab will contain the input dataframe with the simplified strings and the references. The “Original” tab will contain the original values and their counts. The “Pattern Counts” tab will contain the pattern counts of the simplified values. The “Command Patterns” tab will contain the pivot table of the simplified values and their counts. The output file name will be derived from the source file name by appending a suffix of “_simplified”. For example, if the input file name is “commands.csv”, the output file name will be “commands_simplified.xlsx”.
+The program processes a CSV file, which must have a column named 'Command/Events', as input and generates an Excel file as output. The output file includes four tabs: 'Simplified' (input dataframe with simplified strings and references), 'Original' (original values and counts), 'Pattern Counts' (counts of simplified values), and 'Command Patterns' (pivot table of simplified values and counts); the output file name is derived from the source file name by appending a '_simplified' suffix."
