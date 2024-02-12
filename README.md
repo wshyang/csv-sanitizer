@@ -10,14 +10,14 @@ The input is a CSV file that contains the command strings in a column named "Com
 
 ## Simplification and Replacement Rules
 
-- The program uses a function called `simplify_and_replace` to replace command strings with simplified strings and references according to specific rules, storing the original values and their counts in a separate dataframe. The simplified string is the command string with the original strings replaced by the replacement strings, and both the original and replacement strings are returned in the same order as they appear in the command string. For example, if the original value is `"aBcD_1-2"` and its index in the references dataframe is 2, the reference value will be `ALPHANUM8_2`. For example, if the reference value is `PATH_1`, the Index column will have the value 1. This way, the references can be easily correlated with the original values and their counts.
+- The program uses a function called `simplify_and_replace` to replace command strings with simplified strings and references according to specific rules, storing the original values and their counts in a separate dataframe `OriginalReferencesDataframe`. The simplified string is the command string with the original strings replaced by the replacement strings, and both the original and replacement strings are returned in the same order as they appear in the command string. For example, if the original value is `"aBcD_1-2"` and its index in `OriginalReferencesDataframe` is 2, the reference value will be `2`. For example, if the reference value is `1`, the Index column will have the value 1. This way, the references can be easily correlated with the original values and their counts.
 - Replace a double quote enclosed block of 8 characters consisting of both upper and lowercase alphanumeric characters, underscore and dash, with the string "ALPHANUM8". For example, `"aBcD_1-2"` is replaced with `ALPHANUM8`.
-- Replace strings that resemble UNIX paths under the default directories, either not enclosed in quotes, or enclosed in matching single or double quotes, with the string "PATH". For example, `'/usr/bin/python'` and `"/home/user/file.txt"` are replaced with `PATH` and `PATH`, respectively. However, if a PATH is at the start of the command string, it should not be replaced or referenced. For example, `/usr/bin/python /home/user/file.txt` is not replaced or referenced, but `/usr/bin/python /home/user/file.txt` is replaced with `/usr/bin/python PATH` and referenced as `PATH_5`.
-- Replace numbers between 5 and 12 digits long that follow the word "echo" with the string "NUMERIC". For example, `echo 123456789` is replaced with `NUMERIC_0`.
+- Replace strings that resemble UNIX paths under the default directories, either not enclosed in quotes, or enclosed in matching single or double quotes, with the string "PATH". For example, `'/usr/bin/python'` and `"/home/user/file.txt"` are replaced with `PATH` and `PATH`, respectively. However, if a PATH is at the start of the command string, it should not be replaced or referenced. For example, `/usr/bin/python /home/user/file.txt` is not replaced or referenced, but `/usr/bin/python /home/user/file.txt` is replaced with `/usr/bin/python PATH` and referenced as `5`.
+- Replace numbers between 5 and 12 digits long that follow the word "echo" with the string "NUMERIC". For example, `echo 123456789` is replaced with `echo NUMERIC`.
 - Replace valid hostnames with the string "HOSTNAME". A valid hostname follows the regex pattern defined in the global variable `hostname_pattern`. For example, `p2eavwaabc01.intraPRD.abc.com.sg` is replaced with `HOSTNAME_5`.
 
 ### How the References are Generated
-Reference values are generated using the index number of the original value in the references dataframe, and are stored as a comma-separated list in a new Reference column of the input dataframe. The references dataframe has an Index column that corresponds to the reference suffixes.
+Reference values are generated using the index number of the original value in `OriginalReferencesDataframe`, and are stored as a comma-separated list in a new Reference column of the input dataframe. The `OriginalReferencesDataframe` dataframe has an Index column that corresponds to the reference suffixes.
 
 ### Example Scenarios for PATH
 
@@ -37,7 +37,7 @@ The input dataframe after processing:
 | -------------- | --------- |
 | /usr/bin/python PATH | [1] |
 
-The references dataframe should contain:
+The `OriginalReferencesDataframe` dataframe should contain:
 
 | Index | Value | Count |
 | ----- | ----- | ----- |
@@ -55,20 +55,20 @@ The `simplify_and_replace` function processes a command string as an argument. I
 
 ## Generate References Function
 
-The program defines a function `generate_references` that takes a list of original strings and the original dataframe as arguments and returns a reference value using the reference generation rules.
+The program defines a function `generate_references` that takes a list of original strings and the `OriginalReferencesDataframe` dataframe as arguments and returns a reference value using the reference generation rules.
 
-- The reference value is a list of integers of the reference values that correspond to the index of the original strings in the references dataframe in the same order as they appear in the command string.
-- The function modifies the original dataframe in place according to the reference generation rules. The original dataframe contains the original values and their counts in two columns: "Value" and "Count".
+- The reference value is a list of integers of the reference values that correspond to the index of the original strings in the `OriginalReferencesDataframe` dataframe in the same order as they appear in the command string.
+- The function modifies the `OriginalReferencesDataframe` dataframe in place according to the reference generation rules. The `OriginalReferencesDataframe` dataframe contains the original values and their counts in two columns: "Value" and "Count".
 
 The function uses the following logic and algorithm to perform the reference generation:
 
 - Initialize the reference value as an empty list
 - For each original string, do the following:
-  - Check if the original string is already in the original dataframe
-  - If yes, get the index of the original string in the original dataframe
-  - Increment the count of the original string in the original dataframe by one
-  - If no, get the index of the original string as the length of the original dataframe
-  - Append the original string and its count to the original dataframe
+  - Check if the original string is already in the `OriginalReferencesDataframe` dataframe
+  - If yes, get the index of the original string in the `OriginalReferencesDataframe` dataframe
+  - Increment the count of the original string in the `OriginalReferencesDataframe` dataframe by one
+  - If no, get the index of the original string as the length of the `OriginalReferencesDataframe` dataframe
+  - Append the original string and its count to the `OriginalReferencesDataframe` dataframe
   - Generate the reference value by appending the index number to the list
 - Return the reference value
 
@@ -115,7 +115,7 @@ The program simplifies and replaces the command strings with simplified strings 
 
 ## Program State
 
-The program maintains a state, saved to a 'program_state.pkl' file, which includes the file name, input dataframe, references dataframe, and a counter variable; this state is loaded if it exists and matches the current file, and is deleted after the output file is saved. The program saves the state every time it processes 0.5% of the total lines and resumes from the previous state at the line indicated by the counter value.
+The program maintains a state, saved to a 'program_state.pkl' file, which includes the file name, input dataframe, `OriginalReferencesDataframe` dataframe, and a counter variable; this state is loaded if it exists and matches the current file, and is deleted after the output file is saved. The program saves the state every time it processes 0.5% of the total lines and resumes from the previous state at the line indicated by the counter value.
 
 ## Logic and Algorithm
 
@@ -125,11 +125,11 @@ The program uses the following logic and algorithm to simplify and analyze the c
 - Define a global variable `hostname_pattern` that contains the regex pattern for valid hostnames.
 - Define a function `simplify_and_replace` that takes a command string as an argument and returns a simplified string and a list of original strings that were replaced using the simplification and replacement rules. 
 - In simplify_and_replace, the regex strings and replacement strings should be in arrays to help reduce repetition in the code.
-- Define a function `generate_references` that takes a list of original strings and the original dataframe as arguments and returns a reference value and an updated original dataframe using the reference generation rules.
-- Define a function `save_state` that takes the file name, the input dataframe, the original dataframe, and the counter as arguments and saves them to the state file using the pickle module.
-- Define a function `load_state` that takes the file name as an argument and loads the program state from the state file if it exists and the file name matches the current file. It returns the input dataframe, the original dataframe, and the counter. If the state file does not exist or the file name does not match, it returns None, None, and 0.
+- Define a function `generate_references` that takes a list of original strings and the `OriginalReferencesDataframe` dataframe as arguments and returns a reference value and an updated `OriginalReferencesDataframe` dataframe using the reference generation rules.
+- Define a function `save_state` that takes the file name, the input dataframe, the `OriginalReferencesDataframe` dataframe, and the counter as arguments and saves them to the state file using the pickle module.
+- Define a function `load_state` that takes the file name as an argument and loads the program state from the state file if it exists and the file name matches the current file. It returns the input dataframe, the `OriginalReferencesDataframe` dataframe, and the counter. If the state file does not exist or the file name does not match, it returns None, None, and 0.
 - Define a function `delete_state` that deletes the state file if it exists.
-- Define a function `write_output` that takes the file name, the input dataframe, the original dataframe, and the pivot table as arguments and writes them to the output Excel file in separate tabs using the `to_excel` method of pandas with the `index=True` argument to preserve the index of the dataframes.
+- Define a function `write_output` that takes the file name, the input dataframe, the `OriginalReferencesDataframe` dataframe, and the pivot table as arguments and writes them to the output Excel file in separate tabs using the `to_excel` method of pandas with the `index=True` argument to preserve the index of the dataframes.
 - The program will also check if the input dataframe exceeds the maximum number of rows per sheet allowed by Excel, which is 1048576. If the input dataframe is too large, the program will split it into smaller chunks and write them to different sheets in the output Excel file. The sheet names will be based on the original sheet name, with a suffix consisting of an underscore, and then the record number of the next record. For example, if the input dataframe has 2000000 rows, the program will write the first 1048575 rows to a sheet named “Simplified”, and the remaining 951425 rows to a sheet named “Simplified_1048576”. This needs to take into account the row taken up by the header row at the top of each sheet.
 - Define a function `process_file` that takes the file name as an argument and performs the following steps:
   - Load the program state from the state file using the `load_state` function and assign the returned values to `input_df`, `original`, and `counter`.
@@ -139,10 +139,10 @@ The program uses the following logic and algorithm to simplify and analyze the c
   - Loop through the rows of the `input_df` dataframe starting from the `counter` value and get the command string from the "Command/Events" column.
   - Simplify and replace the command string with the simplified string and the list of original strings using the `simplify_and_replace` function.
   - Every time the counter is a multiple of 0.5% of the total number of lines, do the following:
-    - Call the save_state function with the file name, the input dataframe, the original dataframe, and the counter as arguments. This will save the current progress of the program to a state file.
+    - Call the save_state function with the file name, the input dataframe, the `OriginalReferencesDataframe` dataframe, and the counter as arguments. This will save the current progress of the program to a state file.
     - Print a message to the standard output that shows how many lines have been processed and what percentage of the total that is.
     - Calculate the average time per line and the remaining time based on the current time and the start time. Print a message to the standard output that shows the estimated time to finish the program.
-  - Generate the reference value and the updated original dataframe using the `generate_references` function with the list of original strings and the original dataframe as arguments.
+  - Generate the reference value and the updated `OriginalReferencesDataframe` dataframe using the `generate_references` function with the list of original strings and the `OriginalReferencesDataframe` dataframe as arguments.
     - Update the `input_df` dataframe with the simplified string and the reference value in a new column named "Reference".
     - Increment the `counter` by one.
   - After the loop is finished, create a pivot table of the simplified commands and their counts using the `pivot_table` function of pandas. The pivot table has the simplified command strings as the index and the counts as the values.
